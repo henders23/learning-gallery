@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Learning Gallery</title>
+<style>
+  :root {
+    --paper: #f4ead2;
+    --ink: #1e1a13;
+    --muted: #6b6253;
+    --gold: #b88c3a;
+    --sky: #bcdcf2;
+    --moss: #94b884;
+    --bg: #0e1418;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: var(--bg); color: var(--paper);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stage { position: fixed; inset: 0; }
+
+  /* ── crosshair ──────────────────────────────────────────────── */
+  #crosshair {
+    position: fixed; top: 50%; left: 50%;
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(255, 240, 210, 0.55);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none; z-index: 5;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  #crosshair::before, #crosshair::after {
+    content: ""; position: absolute; background: rgba(255, 240, 210, 0.55);
+  }
+  #crosshair::before { left: 50%; top: -6px; width: 1.5px; height: 4px; transform: translateX(-50%); }
+  #crosshair::after  { left: 50%; bottom: -6px; width: 1.5px; height: 4px; transform: translateX(-50%); }
+  #crosshair.active {
+    border-color: var(--gold);
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  #reticleLabel {
+    position: fixed; top: calc(50% + 22px); left: 50%;
+    transform: translateX(-50%);
+    font: 500 12px/1.4 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(20, 16, 10, 0.7);
+    color: #fff2c8;
+    padding: 5px 10px; border-radius: 2px;
+    pointer-events: none; z-index: 5;
+    display: none;
+    white-space: nowrap;
+  }
+
+  /* ── intro card ─────────────────────────────────────────────── */
+  #intro {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(20,30,40,0.92), rgba(0,0,0,0.98));
+    backdrop-filter: blur(4px);
+  }
+  .introCard {
+    max-width: 560px; padding: 48px 48px 40px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    text-align: left;
+  }
+  .introCard .kicker {
+    font: italic 14px/1.2 Georgia, serif; color: var(--muted);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .introCard h1 {
+    font: 600 44px/1.05 Georgia, serif;
+    margin: 0 0 18px;
+  }
+  .introCard p {
+    font: 400 15px/1.55 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225; margin: 0 0 14px;
+  }
+  .controls {
+    display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px;
+    margin: 22px 0 28px;
+    font: 13px/1.4 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225;
+  }
+  .controls kbd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: #ede2c4;
+    border: 1px solid #c8b890;
+    padding: 2px 8px;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 #c8b890;
+    font-size: 12px;
+    text-align: center;
+    min-width: 28px;
+  }
+  #startBtn {
+    background: var(--ink); color: var(--paper);
+    border: none; padding: 14px 28px;
+    font: 500 14px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.15s;
+  }
+  #startBtn:hover { background: var(--gold); color: var(--ink); }
+
+  #hint {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 40;
+    background: rgba(20, 16, 10, 0.85);
+    color: #fff2c8;
+    padding: 9px 18px;
+    font: 500 12px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    border: 1px solid rgba(255, 240, 200, 0.18);
+    cursor: pointer;
+    display: none;
+  }
+
+  /* ── info panel ─────────────────────────────────────────────── */
+  #panel {
+    position: fixed; inset: 0; z-index: 30;
+    background: rgba(10, 8, 6, 0.6);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  #panel.open { opacity: 1; pointer-events: auto; }
+  .panelCard {
+    width: min(960px, 94vw);
+    max-height: 90vh; overflow: auto;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    display: grid; grid-template-columns: 340px 1fr;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+  }
+  #panel.open .panelCard { transform: translateY(0); }
+  #panelArt {
+    background: #2a241a; padding: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+  }
+  #panelArt canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .panelBody {
+    padding: 36px 40px 32px;
+    position: relative;
+  }
+  #panelCluster {
+    font: 500 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 10px;
+  }
+  #panelTitle {
+    font: 600 30px/1.15 Georgia, serif;
+    margin: 0 0 4px; color: var(--ink);
+  }
+  #panelAuthor {
+    font: italic 15px/1.4 Georgia, serif;
+    color: var(--muted); margin: 0 0 18px;
+  }
+  #panelSummary {
+    font: 500 15px/1.6 "Helvetica Neue", Arial, sans-serif;
+    color: #2c2519; margin: 0 0 16px;
+  }
+  #panelExtended {
+    font: 400 14px/1.6 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225; margin: 0 0 18px;
+  }
+  .panelHeading {
+    font: 500 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin: 18px 0 10px;
+  }
+  #panelPoints {
+    margin: 0 0 8px; padding: 0; list-style: none;
+  }
+  #panelPoints li {
+    font: 400 13.5px/1.5 "Helvetica Neue", Arial, sans-serif;
+    color: #2c2519;
+    padding: 6px 0 6px 22px;
+    border-top: 1px solid rgba(0,0,0,0.07);
+    position: relative;
+  }
+  #panelPoints li:first-child { border-top: none; }
+  #panelPoints li::before {
+    content: ""; position: absolute; left: 4px; top: 13px;
+    width: 6px; height: 6px; background: var(--gold);
+    border-radius: 50%;
+  }
+  .panelMeta {
+    font: 400 13px/1.55 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225; margin: 0 0 6px;
+  }
+  .panelMeta strong {
+    color: var(--ink);
+  }
+  #panelNotes {
+    width: 100%;
+    min-height: 110px;
+    padding: 12px 14px;
+    border: 1px solid #c8b890;
+    background: #fff8e4;
+    color: var(--ink);
+    font: 400 14px/1.55 Georgia, serif;
+    resize: vertical;
+    outline: none;
+    border-radius: 2px;
+  }
+  #panelNotes:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184, 140, 58, 0.18);
+  }
+  .notesBar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px;
+  }
+  #notesStatus {
+    font: 400 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  #notesClear {
+    background: transparent; border: 1px solid #c8b890;
+    padding: 6px 12px;
+    font: 500 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+  }
+  #notesClear:hover { color: var(--ink); border-color: var(--ink); }
+
+  #panelClose {
+    position: absolute; top: 18px; right: 18px;
+    background: transparent; border: none;
+    width: 32px; height: 32px;
+    cursor: pointer; color: var(--ink);
+    font: 400 22px/1 "Helvetica Neue", Arial, sans-serif;
+  }
+  #panelClose:hover { color: var(--gold); }
+
+  @media (max-width: 720px) {
+    .panelCard { grid-template-columns: 1fr; }
+    #panelArt { aspect-ratio: 16 / 9; }
+  }
+
+  /* ── notebook overlay ───────────────────────────────────────── */
+  #notebook {
+    position: fixed; inset: 0; z-index: 35;
+    background: rgba(10, 8, 6, 0.85);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  #notebook.open { opacity: 1; pointer-events: auto; }
+  .notebookCard {
+    width: min(820px, 94vw);
+    max-height: 88vh;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+  }
+  .notebookHeader {
+    padding: 24px 32px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .notebookHeader h2 {
+    font: 600 22px/1.1 Georgia, serif; margin: 0; color: var(--ink);
+  }
+  .notebookHeader .meta {
+    display: flex; align-items: center; gap: 16px;
+  }
+  #notebookCount {
+    font: 500 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  #notebookClose {
+    background: transparent; border: none;
+    font: 500 12px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+  }
+  #notebookClose:hover { color: var(--gold); }
+  #notebookList {
+    overflow: auto; padding: 8px 32px 24px;
+  }
+  #notebookList section { padding: 16px 0 10px; }
+  #notebookList h3 {
+    font: 500 11px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 10px;
+    padding-bottom: 6px; border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  #notebookList ul {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px;
+  }
+  #notebookList li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 6px 8px; cursor: pointer; border-radius: 2px;
+  }
+  #notebookList li:hover { background: rgba(184, 140, 58, 0.12); }
+  #notebookList li .check {
+    flex: 0 0 14px; font-size: 12px; line-height: 18px;
+    color: var(--gold);
+  }
+  #notebookList li.unseen .check { color: #c8b890; }
+  #notebookList li.hasnotes .check { color: var(--moss); }
+  #notebookList li .title {
+    font: 500 13px/1.3 "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+  }
+  #notebookList li.unseen .title { color: #6b5d44; }
+  #notebookList li .author {
+    font: italic 11px/1.3 Georgia, serif;
+    color: var(--muted); margin-top: 2px;
+  }
+  #notebookList li .noteBadge {
+    margin-left: 4px;
+    font: 500 9px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--moss);
+    padding: 2px 5px;
+    border: 1px solid var(--moss);
+    border-radius: 2px;
+    align-self: center;
+  }
+
+  /* ── map ───────────────────────────────────────────────────── */
+  #map {
+    position: fixed; top: 22px; right: 22px;
+    z-index: 6;
+    background: rgba(20, 24, 30, 0.86);
+    border: 1px solid rgba(255, 240, 200, 0.16);
+    padding: 12px 14px;
+    color: #fff2c8;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+  #map.collapsed #mapSvg { display: none; }
+  #map.collapsed { padding: 8px 14px; }
+  #map .mapTop {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 20px;
+    margin-bottom: 6px;
+  }
+  #mapRoomLabel {
+    font: 500 10px/1.2 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  #mapTitle {
+    font: 500 10px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: #fff2c8; opacity: 0.6;
+  }
+  #mapSvg {
+    display: block;
+    background: #14110b;
+    border: 1px solid rgba(255,240,200,0.08);
+  }
+  #mapLegend {
+    margin-top: 8px;
+    font: 400 10px/1.4 "Helvetica Neue", Arial, sans-serif;
+    color: rgba(255,242,200,0.55);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── bottom HUD ────────────────────────────────────────────── */
+  #hud {
+    position: fixed; bottom: 18px; left: 22px;
+    z-index: 6;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    max-width: calc(100vw - 44px);
+    pointer-events: none;
+  }
+  #hud span {
+    background: rgba(20, 24, 30, 0.78);
+    border: 1px solid rgba(255, 240, 200, 0.14);
+    padding: 7px 12px 7px 10px;
+    font: 500 10px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(255, 242, 200, 0.75);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  #hud kbd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: rgba(255,240,200,0.10);
+    border: 1px solid rgba(255,240,200,0.28);
+    padding: 3px 7px;
+    border-radius: 2px;
+    color: #fff2c8;
+    margin: 0;
+    letter-spacing: 0;
+    font-size: 10px;
+  }
+  #hud .kg { display: inline-flex; gap: 3px; }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<div id="crosshair"></div>
+<div id="reticleLabel"></div>
+
+<!-- Map -->
+<aside id="map">
+  <div class="mapTop">
+    <span id="mapTitle">Map</span>
+    <span id="mapRoomLabel">—</span>
+  </div>
+  <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="mapLegend">M to toggle</div>
+</aside>
+
+<!-- Bottom HUD -->
+<div id="hud">
+  <span><span class="kg"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>move</span>
+  <span><kbd>Shift</kbd>run</span>
+  <span><kbd>Mouse</kbd>look</span>
+  <span><kbd>Click</kbd>read artwork</span>
+  <span><kbd>N</kbd>notebook</span>
+  <span><kbd>M</kbd>map</span>
+  <span><kbd>Esc</kbd>release cursor</span>
+</div>
+
+<button id="hint">Click to re-enter the gallery</button>
+
+<!-- Intro -->
+<div id="intro">
+  <div class="introCard">
+    <p class="kicker">A walkable atlas of</p>
+    <h1>Theories of Learning</h1>
+    <p>A first-person gallery of 70+ frameworks for how people learn — from cognitive architecture and memory through motivation, social practice, design models and EAP-specific lenses.</p>
+    <p>Walk up to any artwork and click to read its summary, key points, and an extended discussion. Take your own notes as you go — they're saved on your device.</p>
+    <div class="controls">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>walk</span>
+      <span><kbd>Shift</kbd></span><span>run</span>
+      <span><kbd>Mouse</kbd></span><span>look around</span>
+      <span><kbd>Click</kbd></span><span>read the artwork in front of you</span>
+      <span><kbd>N</kbd></span><span>open your notebook</span>
+      <span><kbd>M</kbd></span><span>toggle the map</span>
+      <span><kbd>Esc</kbd></span><span>release the cursor</span>
+    </div>
+    <button id="startBtn">Enter the gallery</button>
+  </div>
+</div>
+
+<!-- Info panel -->
+<div id="panel">
+  <div class="panelCard">
+    <div id="panelArt"></div>
+    <div class="panelBody">
+      <button id="panelClose">✕</button>
+      <p id="panelCluster">Cluster</p>
+      <h2 id="panelTitle">Theory title</h2>
+      <p id="panelAuthor">Author, year</p>
+      <p id="panelSummary">Summary…</p>
+      <p id="panelExtended"></p>
+
+      <p class="panelHeading">Key Points</p>
+      <ul id="panelPoints"></ul>
+
+      <div id="panelEvidenceWrap" style="display:none;">
+        <p class="panelHeading">Evidence</p>
+        <p class="panelMeta" id="panelEvidence"></p>
+      </div>
+
+      <div id="panelPitfallsWrap" style="display:none;">
+        <p class="panelHeading">Common pitfalls</p>
+        <p class="panelMeta" id="panelPitfalls"></p>
+      </div>
+
+      <div id="panelAiWrap" style="display:none;">
+        <p class="panelHeading">In the AI age</p>
+        <p class="panelMeta" id="panelAi"></p>
+      </div>
+
+      <p class="panelHeading">My notes</p>
+      <textarea id="panelNotes" placeholder="Write your own notes on this theory — they save automatically and stay on your device."></textarea>
+      <div class="notesBar">
+        <span id="notesStatus"></span>
+        <button id="notesClear">Clear notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notebook -->
+<div id="notebook">
+  <div class="notebookCard">
+    <div class="notebookHeader">
+      <h2>Notebook</h2>
+      <div class="meta">
+        <span id="notebookCount">0 of 0 read</span>
+        <button id="notebookClose">Close</button>
+      </div>
+    </div>
+    <div id="notebookList"></div>
+  </div>
+</div>
+
+<!-- three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+
+<!-- gallery modules -->
+<script src="gallery/data.js"></script>
+<script src="gallery/art.js"></script>
+<script src="gallery/world.js"></script>
+<script src="gallery/main.js"></script>
+
+</body>
+</html>
