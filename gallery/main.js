@@ -71,7 +71,11 @@
     controls.lock();
   });
   controls.addEventListener("lock", () => { intro.style.display = "none"; hint.style.display = "none"; });
-  controls.addEventListener("unlock", () => { /* drag-to-look fallback covers this case */ });
+  controls.addEventListener("unlock", () => {
+    if (!panel.classList.contains("open") && !notebook.classList.contains("open")) {
+      setTimeout(() => controls.lock(), 0);
+    }
+  });
   const hint = document.getElementById("hint");
   hint.addEventListener("click", () => { hint.style.display = "none"; controls.lock(); });
 
@@ -88,46 +92,19 @@
     }
   }
 
-  // ── drag-to-look fallback ───────────────────────────────────────────────
-  const _euler = new THREE.Euler(0, 0, 0, "YXZ");
-  const PI_2 = Math.PI / 2;
-  let mouseDown = false, dragDistance = 0, lastX = 0, lastY = 0;
-  renderer.domElement.addEventListener("mousedown", (e) => {
-    if (panel.classList.contains("open") || notebook.classList.contains("open")) return;
-    if (controls.isLocked) return;
-    mouseDown = true;
-    lastX = e.clientX; lastY = e.clientY;
-    dragDistance = 0;
-    renderer.domElement.style.cursor = "grabbing";
-  });
+  let mouseDown = false, dragDistance = 0;
   window.addEventListener("mousemove", (e) => {
     mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
     mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    if (!mouseDown || controls.isLocked) return;
-    const dx = e.clientX - lastX;
-    const dy = e.clientY - lastY;
-    lastX = e.clientX; lastY = e.clientY;
-    dragDistance += Math.abs(dx) + Math.abs(dy);
-    _euler.setFromQuaternion(camera.quaternion);
-    _euler.y -= dx * 0.0025;
-    _euler.x -= dy * 0.0025;
-    _euler.x = Math.max(-PI_2 + 0.05, Math.min(PI_2 - 0.05, _euler.x));
-    camera.quaternion.setFromEuler(_euler);
   });
-  window.addEventListener("mouseup", () => {
-    mouseDown = false;
-    renderer.domElement.style.cursor = "";
-  });
+  window.addEventListener("mouseup", () => { mouseDown = false; });
 
   document.addEventListener("click", (e) => {
     if (panel.classList.contains("open") || notebook.classList.contains("open")) return;
     if (e.target.closest("#map, #hud, #hint, #intro, #panel, #notebook")) return;
     if (controls.isLocked) {
       tryInteract(false);
-    } else {
-      if (dragDistance > 8) { dragDistance = 0; return; }
-      tryInteract(true);
-    }
+    } else if (dragDistance <= 8) tryInteract(true);
   });
 
   // ── crosshair hover ─────────────────────────────────────────────────────
@@ -135,7 +112,7 @@
   const crosshair = document.getElementById("crosshair");
   const reticleLabel = document.getElementById("reticleLabel");
   function updateHover() {
-    raycaster.setFromCamera(controls.isLocked ? screenCenter : mouseNDC, camera);
+    raycaster.setFromCamera(screenCenter, camera);
     const hits = raycaster.intersectObjects(world.raycastTargets, false);
     const hit = hits.find((h) => h.distance < 9);
     if (hit) {
@@ -146,12 +123,10 @@
         reticleLabel.style.display = "block";
       }
       crosshair.classList.add("active");
-      if (!controls.isLocked) renderer.domElement.style.cursor = mouseDown ? "grabbing" : "pointer";
     } else {
       hovered = null;
       reticleLabel.style.display = "none";
       crosshair.classList.remove("active");
-      if (!controls.isLocked && !mouseDown) renderer.domElement.style.cursor = "grab";
     }
   }
 
