@@ -279,22 +279,18 @@
         W: [Math.PI / 2 - hole / 2, Math.PI / 2 + hole / 2],
       };
       const segments = 180;
-      let openStart = null;
       const inDoor = (a) => room.doors.some((d) => {
         const [a0, a1] = doorRanges[d];
         return a >= a0 && a <= a1;
       });
-      for (let i = 0; i <= segments; i++) {
-        const a = -Math.PI + (i / segments) * (Math.PI * 2);
-        const open = inDoor(a);
-        if (!open && openStart === null) openStart = a;
-        if ((open || i === segments) && openStart !== null) {
-          const end = open ? a : a;
-          const from = [room.center[0] - Math.sin(openStart) * radius, room.center[1] - Math.cos(openStart) * radius];
-          const to = [room.center[0] - Math.sin(end) * radius, room.center[1] - Math.cos(end) * radius];
-          buildWall(scene, from, to, wallMatNS);
-          openStart = null;
-        }
+      for (let i = 0; i < segments; i++) {
+        const a0 = -Math.PI + (i / segments) * (Math.PI * 2);
+        const a1 = -Math.PI + ((i + 1) / segments) * (Math.PI * 2);
+        const am = (a0 + a1) / 2;
+        if (inDoor(am)) continue;
+        const from = [room.center[0] - Math.sin(a0) * radius, room.center[1] - Math.cos(a0) * radius];
+        const to = [room.center[0] - Math.sin(a1) * radius, room.center[1] - Math.cos(a1) * radius];
+        buildWall(scene, from, to, wallMatNS);
       }
       for (const side of room.doors) buildLintel(scene, room, side, wallMatNS);
       for (const side of room.doors) buildDoorwaySign(scene, room, side);
@@ -453,9 +449,15 @@
       corridor(wx_right - margin, az - half - margin,
                ax_left + margin, az + half + margin, "door-w");
     }
-    corridor(-9, -35, 9, -31, "door-north-archive");
-    corridor(32, -4, 34, 4, "door-east-studio");
-    corridor(-36, -4, -34, 4, "door-west-passage");
+    // Deep map connectors to smaller themed rooms.
+    corridor(-2.6, -38.6, 2.6, -31.4, "door-north-research");
+    corridor(-2.6, -48.6, 2.6, -37.4, "door-north-research-2");
+    corridor(5.4, -45.4, 19.4, -40.6, "door-cognition-annex");
+    corridor(31.4, -2.6, 48.6, 2.6, "door-language-lab");
+    corridor(37.4, 5.4, 48.6, 19.4, "door-transfer-room");
+    corridor(-48.6, -2.6, -31.4, 2.6, "door-social-theory");
+    corridor(-48.6, -19.4, -37.4, -5.4, "door-autonomy-hub");
+    corridor(-2.6, 31.4, 2.6, 48.6, "door-assessment");
     return boxes;
   }
 
