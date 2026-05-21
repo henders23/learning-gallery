@@ -97,7 +97,19 @@
     const side = theory.wall;
     const inset = WALL_T / 2 + 0.02;
     let pos, rotY, labelPos;
-    if (side === "N") {
+    if (room.shape === "circle") {
+      const radius = Math.min(room.sizeX, room.sizeZ) / 2 - 0.12;
+      const sideAngles = { N: Math.PI, E: -Math.PI / 2, S: 0, W: Math.PI / 2 };
+      const base = sideAngles[side] ?? 0;
+      const arcOffset = theory.t / Math.max(radius, 1);
+      const a = base + arcOffset;
+      const wallX = cx - Math.sin(a) * radius;
+      const wallZ = cz - Math.cos(a) * radius;
+      const facing = a + Math.PI;
+      pos = [wallX, ART_Y, wallZ];
+      labelPos = [wallX, LABEL_Y, wallZ];
+      rotY = facing;
+    } else if (side === "N") {
       pos      = [cx + theory.t, ART_Y,   cz - halfZ + inset]; rotY = 0;
       labelPos = [cx + theory.t, LABEL_Y, cz - halfZ + inset];
     }
@@ -230,8 +242,11 @@
     const wallTexEW = tiledTex(GalleryArt.makeWallCanvas(room), room.sizeZ / 4, WALL_H / 4);
 
     // Floor
+    const floorGeom = room.shape === "circle"
+      ? new THREE.CircleGeometry(Math.min(room.sizeX, room.sizeZ) / 2, 72)
+      : new THREE.PlaneGeometry(room.sizeX, room.sizeZ);
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(room.sizeX, room.sizeZ),
+      floorGeom,
       new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.9 })
     );
     floor.rotation.x = -Math.PI / 2;
@@ -239,8 +254,11 @@
     scene.add(floor);
 
     // Ceiling (subtle warm wash)
+    const ceilGeom = room.shape === "circle"
+      ? new THREE.CircleGeometry(Math.min(room.sizeX, room.sizeZ) / 2, 72)
+      : new THREE.PlaneGeometry(room.sizeX, room.sizeZ);
     const ceil = new THREE.Mesh(
-      new THREE.PlaneGeometry(room.sizeX, room.sizeZ),
+      ceilGeom,
       new THREE.MeshStandardMaterial({ color: 0xf2ecdc, roughness: 1 })
     );
     ceil.rotation.x = Math.PI / 2;
@@ -251,6 +269,37 @@
     // on both axes of a non-square room.
     const wallMatNS = new THREE.MeshStandardMaterial({ map: wallTexNS, roughness: 0.95 });
     const wallMatEW = new THREE.MeshStandardMaterial({ map: wallTexEW, roughness: 0.95 });
+    if (room.shape === "circle") {
+      const radius = Math.min(room.sizeX, room.sizeZ) / 2;
+      const hole = DOOR_W / radius;
+      const doorRanges = {
+        N: [Math.PI - hole / 2, Math.PI + hole / 2],
+        E: [-Math.PI / 2 - hole / 2, -Math.PI / 2 + hole / 2],
+        S: [-hole / 2, hole / 2],
+        W: [Math.PI / 2 - hole / 2, Math.PI / 2 + hole / 2],
+      };
+      const segments = 180;
+      let openStart = null;
+      const inDoor = (a) => room.doors.some((d) => {
+        const [a0, a1] = doorRanges[d];
+        return a >= a0 && a <= a1;
+      });
+      for (let i = 0; i <= segments; i++) {
+        const a = -Math.PI + (i / segments) * (Math.PI * 2);
+        const open = inDoor(a);
+        if (!open && openStart === null) openStart = a;
+        if ((open || i === segments) && openStart !== null) {
+          const end = open ? a : a;
+          const from = [room.center[0] - Math.sin(openStart) * radius, room.center[1] - Math.cos(openStart) * radius];
+          const to = [room.center[0] - Math.sin(end) * radius, room.center[1] - Math.cos(end) * radius];
+          buildWall(scene, from, to, wallMatNS);
+          openStart = null;
+        }
+      }
+      for (const side of room.doors) buildLintel(scene, room, side, wallMatNS);
+      for (const side of room.doors) buildDoorwaySign(scene, room, side);
+      return;
+    }
     for (const side of ["N", "S", "E", "W"]) {
       const mat = (side === "N" || side === "S") ? wallMatNS : wallMatEW;
       const segs = wallSegments(room, side);
@@ -357,6 +406,10 @@
         z0: r.center[1] - hz + margin,
         z1: r.center[1] + hz - margin,
         room: key,
+        shape: r.shape || "rect",
+        radius: Math.min(r.sizeX, r.sizeZ) / 2 - margin,
+        cx: r.center[0],
+        cz: r.center[1],
       });
     }
     // Corridors connect atrium to each wing through the doorways.
@@ -400,12 +453,17 @@
       corridor(wx_right - margin, az - half - margin,
                ax_left + margin, az + half + margin, "door-w");
     }
+    corridor(-9, -35, 9, -31, "door-north-archive");
+    corridor(32, -4, 34, 4, "door-east-studio");
+    corridor(-36, -4, -34, 4, "door-west-passage");
     return boxes;
   }
 
   function currentRoom(boxes, x, z) {
     for (const b of boxes) {
-      if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) return b.room;
+      if (b.shape === "circle") {
+        if ((x - b.cx) ** 2 + (z - b.cz) ** 2 <= b.radius ** 2) return b.room;
+      } else if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) return b.room;
     }
     return null;
   }
