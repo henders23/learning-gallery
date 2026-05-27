@@ -1,140 +1,116 @@
 // gallery/data.js — Room layout + theory data for Learning Gallery
-// Rooms are different sizes (less uniform than the original square layout).
-// Walls are light blue, floors are green, with subtle variation between rooms.
+// 8-wing radial cathedral pattern radiating from a central dome at 45° intervals.
+// Warm stone palette throughout; each wing has its own accent colour.
 
 const ROOMS = {
   atrium: {
-    name: "The Atrium",
-    subtitle: "Meta-frameworks & design models",
+    name: "The Cathedral Dome",
+    subtitle: "Meta-frameworks, teacher stance & contested ideas",
     center: [0, 0],
-    sizeX: 34, sizeZ: 34,
+    sizeX: 30, sizeZ: 30,
     shape: "circle",
-    floor: "#a8c89b",
+    floor: "#c8b89a",
     floorPattern: "checker",
-    wall:  "#cfe3f4",
-    accent: "#3f6b8a",
-    doors: ["N","S","E","W"],
+    wall:  "#e8dcc4",
+    accent: "#7a5c3a",
+    doors: ["N","S","E","W","NE","NW","SE","SW"],
   },
-  north: {
-    name: "Cognitive Architecture",
-    subtitle: "Memory, schema & mind",
-    center: [0, -27],
-    sizeX: 22, sizeZ: 12,
-    floor: "#9fc290",
+  design: {
+    name: "Design Wing",
+    subtitle: "Instructional design, technology & behaviourist models",
+    center: [31, 0],
+    sizeX: 26, sizeZ: 14,
+    angle: 0,
+    floor: "#d4c5a0",
     floorPattern: "planks",
-    wall:  "#bcdcf2",
-    accent: "#2d5d85",
-    doors: ["S"],
-  },
-  east: {
-    name: "Memory, Practice & Taxonomies",
-    subtitle: "Encoding, retrieval & levels",
-    center: [27, 0],
-    sizeX: 12, sizeZ: 22,
-    floor: "#a4c693",
-    floorPattern: "planks",
-    wall:  "#c4dff2",
-    accent: "#34688f",
+    wall:  "#ede0c8",
+    accent: "#8b5e3c",
     doors: ["W"],
   },
-  south: {
-    name: "Motivation, Humanist & Tech",
-    subtitle: "Agency, behaviour & digital learning",
-    center: [0, 27],
-    sizeX: 20, sizeZ: 12,
-    floor: "#a8c594",
+  cog: {
+    name: "Cognition Chapel",
+    subtitle: "Cognitive architecture, memory & mental models",
+    center: [20.5, -20.5],
+    sizeX: 14, sizeZ: 14,
+    angle: 45,
+    floor: "#cfc0a2",
     floorPattern: "planks",
-    wall:  "#c9e1f3",
-    accent: "#4a7596",
-    doors: ["N"],
+    wall:  "#e9dfc9",
+    accent: "#5a4a7a",
+    doors: ["W"],
   },
-  west: {
-    name: "Social, Situated & EAP",
-    subtitle: "Constructivism, practice & genre",
-    center: [-27, 0],
-    sizeX: 12, sizeZ: 20,
-    floor: "#9cbf8b",
+  mem: {
+    name: "Memory Nave",
+    subtitle: "Memory, practice strategies & study science",
+    center: [0, -32],
+    sizeX: 14, sizeZ: 32,
+    angle: 90,
+    floor: "#d1c3a4",
     floorPattern: "planks",
-    wall:  "#bedcf0",
-    accent: "#3a6f7d",
+    wall:  "#ebe2cc",
+    accent: "#3a6a5a",
+    doors: ["S"],
+  },
+  mot: {
+    name: "Motivation Garden",
+    subtitle: "Motivation, self-regulation & learner agency",
+    center: [-22, -22],
+    sizeX: 20, sizeZ: 14,
+    angle: 135,
+    floor: "#d6c7a5",
+    floorPattern: "planks",
+    wall:  "#ede3cc",
+    accent: "#6a7a3a",
+    doors: ["S"],
+  },
+  soc: {
+    name: "Social Amphitheatre",
+    subtitle: "Social & situated learning, constructivism",
+    center: [-29, 0],
+    sizeX: 16, sizeZ: 16,
+    angle: 180,
+    shape: "circle",
+    floor: "#cec0a2",
+    floorPattern: "checker",
+    wall:  "#e8dfc9",
+    accent: "#3a5a7a",
     doors: ["E"],
   },
-  northResearch: {
-    name: "Research Methods",
-    subtitle: "Inquiry, validity & design",
-    center: [0, -43],
-    sizeX: 12, sizeZ: 10,
-    floor: "#97bb85",
-    floorPattern: "checker",
-    wall: "#b8d7ec",
-    accent: "#2f5d80",
-    doors: ["S"],
-  },
-  languageLab: {
-    name: "Language Lab",
-    subtitle: "Corpus, discourse & genre",
-    center: [43, 0],
-    sizeX: 10, sizeZ: 12,
-    floor: "#9fc08d",
-    floorPattern: "checker",
-    wall: "#bdd9ee",
-    accent: "#3f7398",
-    doors: ["W"],
-  },
-  socialTheory: {
-    name: "Social Theory",
-    subtitle: "Identity, power & participation",
-    center: [-43, 0],
-    sizeX: 10, sizeZ: 12,
-    floor: "#98bb86",
+  adu: {
+    name: "Adult Learning Tower",
+    subtitle: "Adult & experiential learning, constructivist approaches",
+    center: [-22, 22],
+    sizeX: 18, sizeZ: 18,
+    angle: 225,
+    floor: "#d3c4a3",
     floorPattern: "planks",
-    wall: "#b4d3e8",
-    accent: "#356774",
-    doors: ["E"],
-  },
-  assessment: {
-    name: "Assessment Studio",
-    subtitle: "Feedback, rubrics & standards",
-    center: [0, 43],
-    sizeX: 12, sizeZ: 10,
-    floor: "#9cbf8b",
-    floorPattern: "checker",
-    wall: "#bdd9ea",
-    accent: "#466e8f",
+    wall:  "#ece1ca",
+    accent: "#7a4a5a",
     doors: ["N"],
   },
-  cognitionAnnex: {
-    name: "Cognition Annex",
-    subtitle: "Attention & working memory",
-    center: [14, -43],
-    sizeX: 10, sizeZ: 10,
-    floor: "#96b985",
+  eap: {
+    name: "EAP Spire",
+    subtitle: "EAP-specific frameworks: genre, discourse & academic literacies",
+    center: [0, 32],
+    sizeX: 8, sizeZ: 26,
+    angle: 270,
+    floor: "#d0c2a3",
     floorPattern: "planks",
-    wall: "#b8d7eb",
-    accent: "#305f81",
-    doors: ["W"],
-  },
-  transferRoom: {
-    name: "Transfer Room",
-    subtitle: "Application across contexts",
-    center: [43, 14],
-    sizeX: 10, sizeZ: 10,
-    floor: "#9ec08a",
-    floorPattern: "checker",
-    wall: "#bfdcec",
-    accent: "#41779a",
+    wall:  "#eae1cb",
+    accent: "#5a3a7a",
     doors: ["N"],
   },
-  autonomyHub: {
-    name: "Autonomy Hub",
-    subtitle: "Self-regulation & metacognition",
-    center: [-43, -14],
-    sizeX: 10, sizeZ: 10,
-    floor: "#95b684",
-    floorPattern: "checker",
-    wall: "#b3d2e6",
-    accent: "#2f6672",
-    doors: ["S"],
+  tax: {
+    name: "Taxonomy Tower",
+    subtitle: "Taxonomies, transfer & expertise",
+    center: [22, 22],
+    sizeX: 14, sizeZ: 14,
+    angle: 315,
+    floor: "#d2c4a5",
+    floorPattern: "planks",
+    wall:  "#ece2cc",
+    accent: "#7a6a3a",
+    doors: ["N"],
   },
 };
 
@@ -145,10 +121,10 @@ function T(o) { return o; }
 // `t` is offset along that wall in metres (negative = left as you look at it).
 const THEORIES = [
   // ═════════════════════════════════════════════════════════════════════════
-  // ATRIUM · META-FRAMEWORKS, DESIGN MODELS & TEACHER STANCE
+  // ATRIUM · META-FRAMEWORKS, TEACHER STANCE & CONTESTED THEORIES
   // ═════════════════════════════════════════════════════════════════════════
 
-  T({ id:"mccrea", room:"atrium", wall:"N", t:-11,
+  T({ id:"mccrea", room:"atrium", wall:"N", t:-7,
     title:"McCrea's Nine Principles",
     author:"McCrea, 2018",
     cluster:"Meta-framework",
@@ -168,7 +144,7 @@ const THEORIES = [
     pitfalls:"Treated as nine independent slogans rather than as a coherent set of constraints that must all be respected at once."
   }),
 
-  T({ id:"loop", room:"atrium", wall:"N", t:-5,
+  T({ id:"loop", room:"atrium", wall:"N", t:0,
     title:"The Learning Loop",
     author:"composite framework",
     cluster:"Meta-framework",
@@ -183,7 +159,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"watson-todd", room:"atrium", wall:"N", t:5,
+  T({ id:"watson-todd", room:"atrium", wall:"N", t:7,
     title:"Pedagogical Aspects of EAP",
     author:"Watson-Todd",
     cluster:"Meta-framework",
@@ -200,91 +176,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"alignment", room:"atrium", wall:"N", t:11,
-    title:"Constructive Alignment",
-    author:"Biggs & Tang",
-    cluster:"Design framework",
-    style:"stripes",
-    summary:"A whole-course design principle: intended learning outcomes, teaching activities and assessment must be coherently aligned.",
-    extendedSummary:"Constructive alignment turns 'what do I want students to be able to do?' into a structural test for the rest of the course. When outcomes, activities and assessment drift apart, students rationally study the assessment — and surface learning becomes the optimal strategy. Tightening alignment makes deep learning the easier path.",
-    keypoints:[
-      "Intended learning outcomes, activities and assessment must be coherent.",
-      "What is assessed should be what is taught should be what was intended.",
-      "Misalignment encourages surface learning and tactical study.",
-      "A well-aligned module is harder to game with AI than a misaligned one."
-    ],
-    evidence:"★★★★★ — widely adopted across HE quality assurance frameworks.",
-    aiImplications:"A well-aligned module is harder to game with AI than a misaligned one; tighten alignment before adding AI policy."
-  }),
-
-  T({ id:"backward-design", room:"atrium", wall:"E", t:-11,
-    title:"Backward Design",
-    author:"Wiggins & McTighe, 2005",
-    cluster:"Design framework",
-    style:"grid",
-    summary:"Plan in reverse: start from desired understanding, decide what evidence would show it, then design the activities to produce that evidence.",
-    extendedSummary:"Understanding by Design inverts the typical lesson-planning order. The 'evidence of understanding' stage is the hinge — it forces designers to operationalise outcomes before committing to activities, and it makes assessment a design problem rather than an afterthought.",
-    keypoints:[
-      "Stage 1 — Identify desired results (transferable understandings).",
-      "Stage 2 — Determine acceptable evidence (assessment design).",
-      "Stage 3 — Plan learning experiences and instruction.",
-      "Six facets of understanding: explain, interpret, apply, perspective, empathy, self-knowledge."
-    ],
-    evidence:"★★★★★",
-    aiImplications:"Designing from outcomes (stable) rather than from technologies (changing) is the most AI-resilient stance available."
-  }),
-
-  T({ id:"gagne", room:"atrium", wall:"E", t:-5,
-    title:"Nine Events of Instruction",
-    author:"Gagné, 1985",
-    cluster:"Design framework",
-    style:"rings",
-    summary:"A nine-step instructional sequence: gain attention, inform of objectives, recall prior learning, present content, provide guidance, elicit performance, give feedback, assess, enhance retention and transfer.",
-    extendedSummary:"Gagné's events read like a checklist for a single learning episode. They map onto the underlying cognitive processes — attention, encoding, retrieval, transfer — that any successful lesson has to support, whatever the discipline.",
-    keypoints:[
-      "Gain attention; inform learners of objectives.",
-      "Stimulate recall of prior learning.",
-      "Present the content; provide learning guidance.",
-      "Elicit performance; provide feedback.",
-      "Assess performance; enhance retention and transfer."
-    ],
-    evidence:"★★★☆☆"
-  }),
-
-  T({ id:"tpack", room:"atrium", wall:"E", t:5,
-    title:"TPACK",
-    author:"Mishra & Koehler",
-    cluster:"Design framework",
-    style:"layers",
-    summary:"Effective tech-integrated teaching sits at the intersection of Technological, Pedagogical and Content Knowledge — none alone is sufficient.",
-    extendedSummary:"TPACK frames the kind of expertise teachers need when working with digital tools: not technology in the abstract, not pedagogy in general, but the situated knowledge of how a particular tool can teach a particular content area effectively. The framework explains why generic 'use AI in class' training tends to fail.",
-    keypoints:[
-      "Content Knowledge — what is to be taught.",
-      "Pedagogical Knowledge — how people learn it.",
-      "Technological Knowledge — what the tools can do.",
-      "Effective practice lives in the overlap of all three."
-    ],
-    aiImplications:"AI staff development needs disciplinary integration, not generic tool training."
-  }),
-
-  T({ id:"udl", room:"atrium", wall:"E", t:11,
-    title:"Universal Design for Learning",
-    author:"Rose & Meyer (CAST)",
-    cluster:"Design framework",
-    style:"glyphs",
-    summary:"Design instruction from the start to accommodate variability: multiple means of engagement, representation, and action/expression.",
-    extendedSummary:"UDL borrows from architecture: it is cheaper and more inclusive to design for variability from the start than to retrofit accommodations later. The three networks — affective (the why of learning), recognition (the what), and strategic (the how) — give designers concrete handles for offering options without lowering the bar.",
-    keypoints:[
-      "Multiple means of engagement (the 'why').",
-      "Multiple means of representation (the 'what').",
-      "Multiple means of action and expression (the 'how').",
-      "Designed-in flexibility — not bolt-on accommodation."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI's multimodality is one of the strongest UDL enablers in HE's history when accessibility is designed for from the start."
-  }),
-
-  T({ id:"meddler", room:"atrium", wall:"S", t:-11,
+  T({ id:"meddler", room:"atrium", wall:"E", t:-7,
     title:"Meddler in the Middle",
     author:"McWilliam",
     cluster:"Teacher stance",
@@ -299,7 +191,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"looped-input", room:"atrium", wall:"S", t:-5,
+  T({ id:"looped-input", room:"atrium", wall:"E", t:0,
     title:"Looped Input",
     author:"Woodward",
     cluster:"Teacher stance",
@@ -313,7 +205,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"differentiation", room:"atrium", wall:"S", t:5,
+  T({ id:"differentiation", room:"atrium", wall:"E", t:7,
     title:"Differentiation & Needs",
     author:"EAP shorthand",
     cluster:"Teacher stance",
@@ -327,7 +219,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"tools-rules", room:"atrium", wall:"S", t:11,
+  T({ id:"tools-rules", room:"atrium", wall:"S", t:-7,
     title:"Tools, Not Rules",
     author:"EAP shorthand",
     cluster:"Teacher stance",
@@ -341,57 +233,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"abc-design", room:"atrium", wall:"W", t:-11,
-    title:"ABC Learning Design",
-    author:"Young & Perović",
-    cluster:"Design framework",
-    style:"bauhaus",
-    summary:"A rapid storyboarding workshop method for module redesign, structuring learning around Laurillard's six learning types.",
-    extendedSummary:"ABC turns module design into a 90-minute team activity. Storyboarding the six learning types — acquisition, inquiry, discussion, practice, collaboration, production — on cards forces decisions about balance and sequence that often hide in narrative descriptions of a module.",
-    keypoints:[
-      "Workshop-based, storyboarded module redesign.",
-      "Built around Laurillard's six learning types.",
-      "Surfaces imbalance (e.g. all acquisition, no inquiry).",
-      "Fast, collaborative, and disciplinarily neutral."
-    ],
-    evidence:"★★★☆☆"
-  }),
-
-  T({ id:"laurillard", room:"atrium", wall:"W", t:-5,
-    title:"Conversational Framework",
-    author:"Laurillard, 2012",
-    cluster:"Design framework",
-    style:"orbit",
-    summary:"Learning happens through a structured conversation between teacher and learner concepts and practices — operationalised as six learning types.",
-    extendedSummary:"Laurillard models the teacher-learner relationship as iterative conversations at the concept and practice levels. The six learning types — acquisition, inquiry, discussion, practice, collaboration, production — are the operational vocabulary for what students actually do, and they give designers a way to audit whether a module is rich or thin.",
-    keypoints:[
-      "Acquisition, inquiry, discussion, practice, collaboration, production.",
-      "Conversations at both concept and practice levels.",
-      "Teacher and learner each produce, the other revises.",
-      "A diagnostic for the balance of activity in a module."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"Discussion and collaboration are largely AI-resistant by their nature; design class time to use them."
-  }),
-
-  T({ id:"feedback", room:"atrium", wall:"W", t:5,
-    title:"Three Questions, Four Levels",
-    author:"Hattie & Timperley, 2007",
-    cluster:"Design framework",
-    style:"stripes",
-    summary:"Feedback works when it answers three questions for the learner — Where am I going? How am I going? Where to next? — at the levels of task, process and self-regulation.",
-    extendedSummary:"Hattie and Timperley's model is the closest the literature has to an operational definition of useful feedback. Its sharpest finding is that feedback about the self ('well done!') is the least effective form — feedback about the process and about self-regulation drives the biggest gains, and they are exactly the levels most rubrics omit.",
-    keypoints:[
-      "Three questions: Where am I going? How am I going? Where to next?",
-      "Four levels: task, process, self-regulation, self.",
-      "Process and self-regulation feedback drive the biggest gains.",
-      "Feedback about 'the self' ('well done!') is largely ineffective."
-    ],
-    evidence:"★★★★★",
-    aiImplications:"Use AI for task and process feedback; reserve human time for self-regulation feedback where AI cannot deliver."
-  }),
-
-  T({ id:"samr", room:"atrium", wall:"W", t:11,
+  T({ id:"samr", room:"atrium", wall:"S", t:0,
     title:"SAMR  ⚠",
     author:"Puentedura",
     cluster:"Contested framework",
@@ -409,11 +251,302 @@ const THEORIES = [
     aiImplications:"Retire the implicit hierarchy; ask whether AI use serves the learning, not where it sits on a ladder."
   }),
 
+  T({ id:"learning-styles", room:"atrium", wall:"S", t:7,
+    title:"Learning Styles / VARK  ⚠",
+    author:"Various; Fleming",
+    cluster:"Contested theory",
+    style:"glyphs",
+    summary:"The claim that learners have stable preferences (Visual, Auditory, Read/write, Kinaesthetic) and learn better when teaching is matched to their preferred style. The matching hypothesis is not supported by rigorous evidence.",
+    extendedSummary:"Despite enormous popularity, decades of well-controlled studies have failed to show that matching teaching to claimed style improves learning. Learners do have preferences; preferences do not predict differential learning gains. The vocabulary persists because it is intuitive and offers individualised teaching as a quick fix.",
+    keypoints:[
+      "Stable 'styles': visual, auditory, read/write, kinaesthetic.",
+      "Matching hypothesis: teach to the learner's style.",
+      "Preferences exist; matching does not improve outcomes.",
+      "Time better spent on dual coding and retrieval practice."
+    ],
+    evidence:"★☆☆☆☆ — matching hypothesis not supported (Pashler et al., 2008).",
+    pitfalls:"'I'm a visual learner' replacing more useful diagnoses of prior knowledge or interest.",
+    aiImplications:"Use AI's multimodality as a UDL win, not as evidence for a discredited theory."
+  }),
+
+  T({ id:"left-right", room:"atrium", wall:"W", t:-7,
+    title:"Left / Right Brain Dominance  ⚠",
+    author:"Popular extrapolation from Sperry",
+    cluster:"Contested theory",
+    style:"strokes",
+    summary:"The popular claim that some learners are 'left-brained' (logical) and others 'right-brained' (creative), and that teaching should accommodate this. The underlying neuroscience does not support the educational claim.",
+    extendedSummary:"The brain has hemispheric specialisations for some functions (notably language), but lateralisation is not the basis for individual differences in personality or learning, and most cognitive activity engages both hemispheres extensively. The framing should be retired in favour of better-evidenced concepts.",
+    keypoints:[
+      "Hemispheric specialisations exist for some functions.",
+      "Lateralisation is not the basis for personality types.",
+      "Most cognition engages both hemispheres.",
+      "The educational claim has no empirical support."
+    ],
+    evidence:"★☆☆☆☆",
+    aiImplications:"Retire the framing; redirect to dual coding or individual differences in prior knowledge."
+  }),
+
+  T({ id:"multiple-intelligences", room:"atrium", wall:"W", t:0,
+    title:"Multiple Intelligences  ⚠",
+    author:"Gardner",
+    cluster:"Contested theory",
+    style:"glyphs",
+    summary:"The claim that there are several relatively independent intelligences (linguistic, logical-mathematical, spatial, musical, bodily-kinesthetic, interpersonal, intrapersonal, naturalist).",
+    extendedSummary:"MI is widely popular and weakly evidenced. The 'intelligences' do not have the psychometric independence the theory requires — they correlate strongly enough to suggest a single general factor underneath. Its appeal is its inclusive vocabulary; the empirical claim does not stand up. AI's multimodality is a UDL win, not evidence for MI.",
+    keypoints:[
+      "Eight or nine 'intelligences', purportedly independent.",
+      "Psychometric independence not supported.",
+      "Frequently conflated with learning styles.",
+      "Appealing rhetorically; empirically thin."
+    ],
+    evidence:"★☆☆☆☆",
+    aiImplications:"AI's multimodality is a UDL win, not evidence for a contested theory of intelligence."
+  }),
+
+  T({ id:"connectivism", room:"atrium", wall:"W", t:7,
+    title:"Connectivism  ⚠",
+    author:"Siemens, 2005",
+    cluster:"Contested theory",
+    style:"glyphs",
+    summary:"The claim that in a networked age, learning is the process of forming and navigating networks — and that knowledge resides in the network.",
+    extendedSummary:"Connectivism overstates its case. Navigating networked information well still requires substantial domain knowledge in long-term memory — without that, search and curation are unmoored, and 'know-where' cannot substitute for know-that or know-how. Useful as a description of a working stance, weak as a foundational theory.",
+    keypoints:[
+      "Learning as network-formation and navigation.",
+      "Knowledge in the network of people, sources, tools.",
+      "Cannot substitute for individual schema-building.",
+      "Underwrites useful working practices, not foundational theory."
+    ],
+    evidence:"★★☆☆☆",
+    aiImplications:"Navigating networked information well requires substantial domain knowledge in long-term memory."
+  }),
+
+  T({ id:"digital-natives", room:"atrium", wall:"N", t:-11,
+    title:"Digital Natives  ⚠",
+    author:"Prensky",
+    cluster:"Contested theory",
+    style:"glyphs",
+    summary:"The claim that learners born after a certain date have fundamentally different cognitive structures from those born before. Not supported by evidence.",
+    extendedSummary:"The 'natives/immigrants' frame collapses on contact with data: variation within generations is far larger than variation between them, and digital fluency is a function of access and practice, not birth date. The 'AI-native' framing repeats the error in a new wrapper.",
+    keypoints:[
+      "Cognitive differences by birth-cohort: not supported.",
+      "Variation within generations >> variation between them.",
+      "Fluency is a function of access and practice.",
+      "'AI-native' is the same framing recycled."
+    ],
+    evidence:"★☆☆☆☆",
+    aiImplications:"'AI-native' is the same framing in a new wrapper, with the same empirical problems."
+  }),
+
   // ═════════════════════════════════════════════════════════════════════════
-  // NORTH · COGNITIVE ARCHITECTURE
+  // DESIGN WING · DESIGN FRAMEWORKS, TECH-BASED & BEHAVIOURIST
   // ═════════════════════════════════════════════════════════════════════════
 
-  T({ id:"cog-load", room:"north", wall:"N", t:-12,
+  T({ id:"alignment", room:"design", wall:"N", t:-10,
+    title:"Constructive Alignment",
+    author:"Biggs & Tang",
+    cluster:"Design framework",
+    style:"stripes",
+    summary:"A whole-course design principle: intended learning outcomes, teaching activities and assessment must be coherently aligned.",
+    extendedSummary:"Constructive alignment turns 'what do I want students to be able to do?' into a structural test for the rest of the course. When outcomes, activities and assessment drift apart, students rationally study the assessment — and surface learning becomes the optimal strategy. Tightening alignment makes deep learning the easier path.",
+    keypoints:[
+      "Intended learning outcomes, activities and assessment must be coherent.",
+      "What is assessed should be what is taught should be what was intended.",
+      "Misalignment encourages surface learning and tactical study.",
+      "A well-aligned module is harder to game with AI than a misaligned one."
+    ],
+    evidence:"★★★★★ — widely adopted across HE quality assurance frameworks.",
+    aiImplications:"A well-aligned module is harder to game with AI than a misaligned one; tighten alignment before adding AI policy."
+  }),
+
+  T({ id:"backward-design", room:"design", wall:"N", t:-4,
+    title:"Backward Design",
+    author:"Wiggins & McTighe, 2005",
+    cluster:"Design framework",
+    style:"grid",
+    summary:"Plan in reverse: start from desired understanding, decide what evidence would show it, then design the activities to produce that evidence.",
+    extendedSummary:"Understanding by Design inverts the typical lesson-planning order. The 'evidence of understanding' stage is the hinge — it forces designers to operationalise outcomes before committing to activities, and it makes assessment a design problem rather than an afterthought.",
+    keypoints:[
+      "Stage 1 — Identify desired results (transferable understandings).",
+      "Stage 2 — Determine acceptable evidence (assessment design).",
+      "Stage 3 — Plan learning experiences and instruction.",
+      "Six facets of understanding: explain, interpret, apply, perspective, empathy, self-knowledge."
+    ],
+    evidence:"★★★★★",
+    aiImplications:"Designing from outcomes (stable) rather than from technologies (changing) is the most AI-resilient stance available."
+  }),
+
+  T({ id:"gagne", room:"design", wall:"N", t:2,
+    title:"Nine Events of Instruction",
+    author:"Gagné, 1985",
+    cluster:"Design framework",
+    style:"rings",
+    summary:"A nine-step instructional sequence: gain attention, inform of objectives, recall prior learning, present content, provide guidance, elicit performance, give feedback, assess, enhance retention and transfer.",
+    extendedSummary:"Gagné's events read like a checklist for a single learning episode. They map onto the underlying cognitive processes — attention, encoding, retrieval, transfer — that any successful lesson has to support, whatever the discipline.",
+    keypoints:[
+      "Gain attention; inform learners of objectives.",
+      "Stimulate recall of prior learning.",
+      "Present the content; provide learning guidance.",
+      "Elicit performance; provide feedback.",
+      "Assess performance; enhance retention and transfer."
+    ],
+    evidence:"★★★☆☆"
+  }),
+
+  T({ id:"tpack", room:"design", wall:"N", t:8,
+    title:"TPACK",
+    author:"Mishra & Koehler",
+    cluster:"Design framework",
+    style:"layers",
+    summary:"Effective tech-integrated teaching sits at the intersection of Technological, Pedagogical and Content Knowledge — none alone is sufficient.",
+    extendedSummary:"TPACK frames the kind of expertise teachers need when working with digital tools: not technology in the abstract, not pedagogy in general, but the situated knowledge of how a particular tool can teach a particular content area effectively. The framework explains why generic 'use AI in class' training tends to fail.",
+    keypoints:[
+      "Content Knowledge — what is to be taught.",
+      "Pedagogical Knowledge — how people learn it.",
+      "Technological Knowledge — what the tools can do.",
+      "Effective practice lives in the overlap of all three."
+    ],
+    aiImplications:"AI staff development needs disciplinary integration, not generic tool training."
+  }),
+
+  T({ id:"udl", room:"design", wall:"E", t:-5,
+    title:"Universal Design for Learning",
+    author:"Rose & Meyer (CAST)",
+    cluster:"Design framework",
+    style:"glyphs",
+    summary:"Design instruction from the start to accommodate variability: multiple means of engagement, representation, and action/expression.",
+    extendedSummary:"UDL borrows from architecture: it is cheaper and more inclusive to design for variability from the start than to retrofit accommodations later. The three networks — affective (the why of learning), recognition (the what), and strategic (the how) — give designers concrete handles for offering options without lowering the bar.",
+    keypoints:[
+      "Multiple means of engagement (the 'why').",
+      "Multiple means of representation (the 'what').",
+      "Multiple means of action and expression (the 'how').",
+      "Designed-in flexibility — not bolt-on accommodation."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI's multimodality is one of the strongest UDL enablers in HE's history when accessibility is designed for from the start."
+  }),
+
+  T({ id:"abc-design", room:"design", wall:"E", t:2,
+    title:"ABC Learning Design",
+    author:"Young & Perović",
+    cluster:"Design framework",
+    style:"bauhaus",
+    summary:"A rapid storyboarding workshop method for module redesign, structuring learning around Laurillard's six learning types.",
+    extendedSummary:"ABC turns module design into a 90-minute team activity. Storyboarding the six learning types — acquisition, inquiry, discussion, practice, collaboration, production — on cards forces decisions about balance and sequence that often hide in narrative descriptions of a module.",
+    keypoints:[
+      "Workshop-based, storyboarded module redesign.",
+      "Built around Laurillard's six learning types.",
+      "Surfaces imbalance (e.g. all acquisition, no inquiry).",
+      "Fast, collaborative, and disciplinarily neutral."
+    ],
+    evidence:"★★★☆☆"
+  }),
+
+  T({ id:"laurillard", room:"design", wall:"S", t:-10,
+    title:"Conversational Framework",
+    author:"Laurillard, 2012",
+    cluster:"Design framework",
+    style:"orbit",
+    summary:"Learning happens through a structured conversation between teacher and learner concepts and practices — operationalised as six learning types.",
+    extendedSummary:"Laurillard models the teacher-learner relationship as iterative conversations at the concept and practice levels. The six learning types — acquisition, inquiry, discussion, practice, collaboration, production — are the operational vocabulary for what students actually do, and they give designers a way to audit whether a module is rich or thin.",
+    keypoints:[
+      "Acquisition, inquiry, discussion, practice, collaboration, production.",
+      "Conversations at both concept and practice levels.",
+      "Teacher and learner each produce, the other revises.",
+      "A diagnostic for the balance of activity in a module."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"Discussion and collaboration are largely AI-resistant by their nature; design class time to use them."
+  }),
+
+  T({ id:"feedback", room:"design", wall:"S", t:-4,
+    title:"Three Questions, Four Levels",
+    author:"Hattie & Timperley, 2007",
+    cluster:"Design framework",
+    style:"stripes",
+    summary:"Feedback works when it answers three questions for the learner — Where am I going? How am I going? Where to next? — at the levels of task, process and self-regulation.",
+    extendedSummary:"Hattie and Timperley's model is the closest the literature has to an operational definition of useful feedback. Its sharpest finding is that feedback about the self ('well done!') is the least effective form — feedback about the process and about self-regulation drives the biggest gains, and they are exactly the levels most rubrics omit.",
+    keypoints:[
+      "Three questions: Where am I going? How am I going? Where to next?",
+      "Four levels: task, process, self-regulation, self.",
+      "Process and self-regulation feedback drive the biggest gains.",
+      "Feedback about 'the self' ('well done!') is largely ineffective."
+    ],
+    evidence:"★★★★★",
+    aiImplications:"Use AI for task and process feedback; reserve human time for self-regulation feedback where AI cannot deliver."
+  }),
+
+  T({ id:"flipped", room:"design", wall:"S", t:2,
+    title:"Flipped Learning",
+    author:"Bergmann & Sams, 2012",
+    cluster:"Tech-based",
+    style:"strokes",
+    summary:"Direct instruction moves out of class — typically as video — freeing class time for higher-order application, dialogue and feedback.",
+    extendedSummary:"Flipped learning is structural: it rebalances where teacher and peers add most value. The model is only as good as the in-class half — if the application phase is just re-explanation, the flip wastes everyone's time. AI strengthens the pre-class half (personalised explanation) and threatens it (students may not engage with material a chatbot can summarise on demand).",
+    keypoints:[
+      "Direct instruction outside class.",
+      "Class time for application, dialogue, feedback.",
+      "Teacher & peers used where they add most value.",
+      "In-class half is the AI-resistant core."
+    ],
+    evidence:"★★★☆☆",
+    aiImplications:"AI strengthens pre-class material and threatens it; the in-class half is the AI-resistant core."
+  }),
+
+  T({ id:"community-of-inquiry", room:"design", wall:"S", t:8,
+    title:"Community of Inquiry",
+    author:"Garrison, Anderson, Archer",
+    cluster:"Tech-based",
+    style:"orbit",
+    summary:"Effective online learning depends on the interplay of three 'presences': cognitive, social and teaching.",
+    extendedSummary:"The CoI framework is the most influential model of online learning design. Its sharpest implication is that purely automated provision (high cognitive presence, low teaching/social presence) reliably underperforms — and that AI's ability to perform 'teaching presence' raises hard questions about whether anyone is actually teaching the course.",
+    keypoints:[
+      "Cognitive presence — meaning-making through discourse.",
+      "Social presence — projecting oneself as a person.",
+      "Teaching presence — design, facilitation, direction.",
+      "All three needed; automation erodes the latter two."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"If AI is doing the work of teaching presence, where is the real teaching presence?"
+  }),
+
+  T({ id:"behaviourism", room:"design", wall:"N", t:-13,
+    title:"Behaviourism",
+    author:"Skinner, 1971",
+    cluster:"Behaviourist",
+    style:"stripes",
+    summary:"Learning framed as observable change in behaviour, shaped by reinforcement and punishment. Useful for automating sub-skills with immediate feedback.",
+    extendedSummary:"Behaviourism's place in HE is narrow but not zero — drill-and-practice software, vocabulary spaced-repetition apps, and immediate-feedback referencing tutorials all exploit operant principles. The weakness is well-known: little to say about the higher-order thinking that defines academic study.",
+    keypoints:[
+      "Learning as observable change in behaviour.",
+      "Shaped by reinforcement and punishment.",
+      "Useful for sub-skill automation.",
+      "Limited account of higher-order thinking."
+    ],
+    evidence:"★★★★☆ — for the narrow claim about behavioural conditioning."
+  }),
+
+  T({ id:"mastery-learning", room:"design", wall:"S", t:13,
+    title:"Mastery Learning",
+    author:"Bloom, 1968",
+    cluster:"Behaviourist",
+    style:"bauhaus",
+    summary:"Students must demonstrate mastery of one unit before moving to the next. Time is the variable, attainment the constant.",
+    extendedSummary:"Mastery learning rejects the bell curve as a feature of teaching rather than a fact of nature: if every student has the time and support they need, most can reach proficiency. The trade-off is logistical — variable time-on-task is hard to schedule — and the model fits AI-tutoring naturally, provided the mastery checks are tightly aligned to integrative outcomes.",
+    keypoints:[
+      "Demonstrate mastery before moving on.",
+      "Time is variable; attainment is constant.",
+      "Prevents gap-accumulation.",
+      "Logistically demanding to schedule."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"A natural fit for AI tutoring; pair mastery checkpoints with integrative tasks across units."
+  }),
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // COG CHAPEL · COGNITIVE ARCHITECTURE
+  // ═════════════════════════════════════════════════════════════════════════
+
+  T({ id:"cog-load", room:"cog", wall:"N", t:-4,
     title:"Cognitive Load Theory  ✦",
     author:"Sweller, 1988",
     cluster:"Cognitive architecture",
@@ -432,7 +565,7 @@ const THEORIES = [
     aiImplications:"Use AI to clear extraneous load; preserve struggle for germane load; fade scaffolds as expertise grows."
   }),
 
-  T({ id:"multimedia", room:"north", wall:"N", t:-4,
+  T({ id:"multimedia", room:"cog", wall:"N", t:4,
     title:"Multimedia Learning Principles  ✦",
     author:"Mayer, 2009",
     cluster:"Cognitive architecture",
@@ -450,7 +583,7 @@ const THEORIES = [
     aiImplications:"Use Mayer's principles as a quality check on any AI-generated material before it reaches students."
   }),
 
-  T({ id:"working-memory", room:"north", wall:"N", t:4,
+  T({ id:"working-memory", room:"cog", wall:"E", t:-4,
     title:"Working Memory",
     author:"Baddeley & Hitch, 1974",
     cluster:"Cognitive architecture",
@@ -467,7 +600,7 @@ const THEORIES = [
     evidence:"★★★★★"
   }),
 
-  T({ id:"dual-coding", room:"north", wall:"N", t:12,
+  T({ id:"dual-coding", room:"cog", wall:"E", t:4,
     title:"Dual Coding Theory",
     author:"Paivio, 1986",
     cluster:"Cognitive architecture",
@@ -484,7 +617,7 @@ const THEORIES = [
     pitfalls:"Confused with learning styles — every learner benefits, regardless of any 'preference'."
   }),
 
-  T({ id:"schema", room:"north", wall:"E", t:-7,
+  T({ id:"schema", room:"cog", wall:"S", t:-4,
     title:"Schema Theory",
     author:"Bartlett; Anderson; Rumelhart",
     cluster:"Cognitive architecture",
@@ -501,7 +634,7 @@ const THEORIES = [
     aiImplications:"AI explanations can mimic the shape of a schema without building it; require the student's own connection-making."
   }),
 
-  T({ id:"prior-knowledge", room:"north", wall:"E", t:0,
+  T({ id:"prior-knowledge", room:"cog", wall:"S", t:4,
     title:"Prior Knowledge & Advance Organisers",
     author:"Ausubel, 1968",
     cluster:"Cognitive architecture",
@@ -518,7 +651,7 @@ const THEORIES = [
     aiImplications:"AI is good at advance organisers — if you specify the learner's prior knowledge precisely."
   }),
 
-  T({ id:"conceptual-change", room:"north", wall:"E", t:7,
+  T({ id:"conceptual-change", room:"cog", wall:"W", t:-4,
     title:"Conceptual Change",
     author:"Posner et al., 1982",
     cluster:"Cognitive architecture",
@@ -535,7 +668,7 @@ const THEORIES = [
     aiImplications:"Fluent AI explanation often fails to shift misconceptions; design for friction, not clarity."
   }),
 
-  T({ id:"distributed-cog", room:"north", wall:"W", t:-7,
+  T({ id:"distributed-cog", room:"cog", wall:"W", t:4,
     title:"Distributed & Extended Cognition",
     author:"Hutchins; Clark & Chalmers",
     cluster:"Cognitive architecture",
@@ -552,7 +685,7 @@ const THEORIES = [
     aiImplications:"Decide which outcomes are assessed in extended form (with AI) and which must be assessed unaided."
   }),
 
-  T({ id:"forgetting-curve", room:"north", wall:"W", t:0,
+  T({ id:"forgetting-curve", room:"cog", wall:"N", t:-7,
     title:"The Forgetting Curve",
     author:"Ebbinghaus, 1885",
     cluster:"Cognitive architecture",
@@ -568,7 +701,7 @@ const THEORIES = [
     evidence:"★★★★★"
   }),
 
-  T({ id:"levels", room:"north", wall:"W", t:7,
+  T({ id:"levels", room:"cog", wall:"E", t:7,
     title:"Levels of Processing",
     author:"Craik & Lockhart, 1972",
     cluster:"Cognitive architecture",
@@ -584,42 +717,7 @@ const THEORIES = [
     evidence:"★★★★☆"
   }),
 
-  T({ id:"learning-styles", room:"north", wall:"S", t:-10,
-    title:"Learning Styles / VARK  ⚠",
-    author:"Various; Fleming",
-    cluster:"Contested theory",
-    style:"glyphs",
-    summary:"The claim that learners have stable preferences (Visual, Auditory, Read/write, Kinaesthetic) and learn better when teaching is matched to their preferred style. The matching hypothesis is not supported by rigorous evidence.",
-    extendedSummary:"Despite enormous popularity, decades of well-controlled studies have failed to show that matching teaching to claimed style improves learning. Learners do have preferences; preferences do not predict differential learning gains. The vocabulary persists because it is intuitive and offers individualised teaching as a quick fix.",
-    keypoints:[
-      "Stable 'styles': visual, auditory, read/write, kinaesthetic.",
-      "Matching hypothesis: teach to the learner's style.",
-      "Preferences exist; matching does not improve outcomes.",
-      "Time better spent on dual coding and retrieval practice."
-    ],
-    evidence:"★☆☆☆☆ — matching hypothesis not supported (Pashler et al., 2008).",
-    pitfalls:"'I'm a visual learner' replacing more useful diagnoses of prior knowledge or interest.",
-    aiImplications:"Use AI's multimodality as a UDL win, not as evidence for a discredited theory."
-  }),
-
-  T({ id:"left-right", room:"north", wall:"S", t:-4,
-    title:"Left / Right Brain Dominance  ⚠",
-    author:"Popular extrapolation from Sperry",
-    cluster:"Contested theory",
-    style:"strokes",
-    summary:"The popular claim that some learners are 'left-brained' (logical) and others 'right-brained' (creative), and that teaching should accommodate this. The underlying neuroscience does not support the educational claim.",
-    extendedSummary:"The brain has hemispheric specialisations for some functions (notably language), but lateralisation is not the basis for individual differences in personality or learning, and most cognitive activity engages both hemispheres extensively. The framing should be retired in favour of better-evidenced concepts.",
-    keypoints:[
-      "Hemispheric specialisations exist for some functions.",
-      "Lateralisation is not the basis for personality types.",
-      "Most cognition engages both hemispheres.",
-      "The educational claim has no empirical support."
-    ],
-    evidence:"★☆☆☆☆",
-    aiImplications:"Retire the framing; redirect to dual coding or individual differences in prior knowledge."
-  }),
-
-  T({ id:"expertise-reversal", room:"north", wall:"S", t:4,
+  T({ id:"expertise-reversal", room:"cog", wall:"S", t:-7,
     title:"Expertise Reversal Effect",
     author:"Kalyuga, Sweller & Ayres, 2003",
     cluster:"Cognitive architecture",
@@ -636,7 +734,7 @@ const THEORIES = [
     aiImplications:"Fade AI support as expertise grows, or graduates may end more dependent than they began."
   }),
 
-  T({ id:"clt-eap", room:"north", wall:"S", t:10,
+  T({ id:"clt-eap", room:"cog", wall:"W", t:-7,
     title:"CLT in Multilingual EAP",
     author:"Sweller — EAP application",
     cluster:"Cognitive architecture",
@@ -653,10 +751,10 @@ const THEORIES = [
   }),
 
   // ═════════════════════════════════════════════════════════════════════════
-  // EAST · MEMORY, PRACTICE, TAXONOMIES & TRANSFER
+  // MEMORY NAVE · MEMORY, PRACTICE STRATEGIES & STUDY SCIENCE
   // ═════════════════════════════════════════════════════════════════════════
 
-  T({ id:"desirable-difficulty", room:"east", wall:"N", t:-7,
+  T({ id:"desirable-difficulty", room:"mem", wall:"N", t:-4,
     title:"Desirable Difficulties  ✦",
     author:"Bjork & Bjork",
     cluster:"Memory & practice",
@@ -673,7 +771,7 @@ const THEORIES = [
     aiImplications:"AI on demand is fluent and frictionless — the exact opposite of what builds durable learning."
   }),
 
-  T({ id:"retrieval-practice", room:"east", wall:"N", t:0,
+  T({ id:"retrieval-practice", room:"mem", wall:"N", t:4,
     title:"Retrieval Practice & Testing Effect",
     author:"Roediger & Karpicke, 2006",
     cluster:"Memory & practice",
@@ -690,7 +788,7 @@ const THEORIES = [
     aiImplications:"Design retrieval so AI consultation comes after the attempt, not in place of it."
   }),
 
-  T({ id:"spacing", room:"east", wall:"N", t:7,
+  T({ id:"spacing", room:"mem", wall:"E", t:-12,
     title:"Spacing Effect",
     author:"Ebbinghaus; Cepeda; Bahrick",
     cluster:"Memory & practice",
@@ -707,7 +805,7 @@ const THEORIES = [
     aiImplications:"AI is well-suited to scheduling and prompting spaced retrieval across a module."
   }),
 
-  T({ id:"interleaving", room:"east", wall:"E", t:-13,
+  T({ id:"interleaving", room:"mem", wall:"E", t:-6,
     title:"Interleaving",
     author:"Rohrer; Taylor; Bjork",
     cluster:"Memory & practice",
@@ -724,7 +822,7 @@ const THEORIES = [
     aiImplications:"Require students to identify the type of problem before any AI assistance."
   }),
 
-  T({ id:"generation", room:"east", wall:"E", t:-7,
+  T({ id:"generation", room:"mem", wall:"E", t:0,
     title:"Generation Effect",
     author:"Slamecka & Graf",
     cluster:"Memory & practice",
@@ -741,7 +839,7 @@ const THEORIES = [
     aiImplications:"Have students predict before AI explains; the prediction is where the encoding happens."
   }),
 
-  T({ id:"worked-examples", room:"east", wall:"E", t:0,
+  T({ id:"worked-examples", room:"mem", wall:"E", t:6,
     title:"Worked Example Effect  ✦",
     author:"Sweller & Cooper",
     cluster:"Memory & practice",
@@ -758,7 +856,7 @@ const THEORIES = [
     aiImplications:"Use AI to generate scaffolded examples; assess at the later, independent stages."
   }),
 
-  T({ id:"study-tech", room:"east", wall:"E", t:7,
+  T({ id:"study-tech", room:"mem", wall:"E", t:12,
     title:"Effective Study Techniques",
     author:"Dunlosky et al., 2013",
     cluster:"Memory & practice",
@@ -774,77 +872,7 @@ const THEORIES = [
     evidence:"★★★★★"
   }),
 
-  T({ id:"learning-pyramid", room:"east", wall:"E", t:13,
-    title:"The Learning Pyramid  ⚠",
-    author:"Attributed to NTL Institute (unverified)",
-    cluster:"Contested theory",
-    style:"stripes",
-    summary:"The popular claim that we retain 5% of what we hear, 10% of what we read, 75% of what we do, etc. The numbers have no empirical basis.",
-    extendedSummary:"The pyramid's specific percentages have never been traced to a primary study, and they survive because they encode a useful intuition (active beats passive) in a memorable visual. The underlying intuition is right; the numbers are made up. Cite retrieval, generation, or dual coding instead.",
-    keypoints:[
-      "The retention percentages have no empirical basis.",
-      "The underlying intuition (active beats passive) is sound.",
-      "Better-evidenced concepts make the same point.",
-      "Retire the visual; keep the instinct."
-    ],
-    evidence:"★☆☆☆☆",
-    aiImplications:"Retire the framework; cite retrieval, generation, or dual coding instead."
-  }),
-
-  T({ id:"bloom", room:"east", wall:"S", t:-7,
-    title:"Bloom's Revised Taxonomy",
-    author:"Anderson & Krathwohl, 2001",
-    cluster:"Taxonomy",
-    style:"stripes",
-    summary:"A hierarchy of cognitive processes — remember, understand, apply, analyse, evaluate, create — that gives shared vocabulary for designing tasks at progressively demanding levels.",
-    extendedSummary:"Bloom's value is less the hierarchy than the diagnostic. Reading a module's outcomes through the verbs reveals when 'apply' is doing all the work and 'evaluate' and 'create' are missing. The revised taxonomy added a second dimension — factual, conceptual, procedural, metacognitive knowledge — that often catches misalignment a single dimension would miss.",
-    keypoints:[
-      "Remember → Understand → Apply → Analyse → Evaluate → Create.",
-      "Knowledge dimensions: factual, conceptual, procedural, metacognitive.",
-      "A diagnostic for the cognitive demand of outcomes and assessments.",
-      "Useful for spotting AI-vulnerability: too many low-level outcomes."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"A useful diagnostic for AI-vulnerability: clusters of low-level outcomes need higher-level companions."
-  }),
-
-  T({ id:"solo", room:"east", wall:"S", t:0,
-    title:"SOLO Taxonomy",
-    author:"Biggs & Collis",
-    cluster:"Taxonomy",
-    style:"rings",
-    summary:"A hierarchy of structural complexity in student understanding: prestructural, unistructural, multistructural, relational, extended abstract.",
-    extendedSummary:"Where Bloom tells you what the student should do, SOLO tells you what their thinking should look like. The leap from multistructural (many ideas listed) to relational (ideas connected into a system) is the move most undergraduate work fails to make — and the move AI-generated text most reliably misses.",
-    keypoints:[
-      "Prestructural — no relevant grasp.",
-      "Unistructural — one relevant aspect.",
-      "Multistructural — several aspects, not connected.",
-      "Relational — connected into a coherent whole.",
-      "Extended abstract — generalised beyond the case."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI output looks multi-structural at first glance; extended-abstract integration distinguishes student-led work."
-  }),
-
-  T({ id:"threshold", room:"east", wall:"S", t:7,
-    title:"Threshold Concepts  ✦",
-    author:"Meyer & Land",
-    cluster:"Taxonomy",
-    style:"bauhaus",
-    summary:"Within each discipline there are concepts that, once grasped, transform a learner's view of the subject. They are troublesome, irreversible and integrative — and progress depends on crossing them.",
-    extendedSummary:"Threshold concepts are the doors between superficial competence and real disciplinary thinking. Opportunity cost in economics, statistical significance in social science, complex numbers in maths — students can perform the surface operations without crossing the threshold, and the apparent competence is fragile. Designing for threshold crossings means designing for productive struggle and conceptual change, not for clarity.",
-    keypoints:[
-      "Transformative — change the learner's view of the field.",
-      "Troublesome — counter-intuitive or conceptually difficult.",
-      "Irreversible — hard to unlearn once crossed.",
-      "Integrative — reveal previously hidden interrelations.",
-      "Often accompanied by 'liminal' states of partial understanding."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI explanations are characteristically too clear; the productive struggle is what the threshold actually requires."
-  }),
-
-  T({ id:"metacognition", room:"east", wall:"W", t:-13,
+  T({ id:"metacognition", room:"mem", wall:"W", t:-12,
     title:"Metacognition",
     author:"Flavell; Brown; Stanton et al.",
     cluster:"Memory & practice",
@@ -861,62 +889,28 @@ const THEORIES = [
     aiImplications:"AI fluency produces a feel-of-knowing that good metacognition is supposed to detect."
   }),
 
-  T({ id:"transfer", room:"east", wall:"W", t:-6,
-    title:"Transfer of Learning",
-    author:"Thorndike; Perkins & Salomon",
-    cluster:"Transfer & expertise",
-    style:"orbit",
-    summary:"Applying what is learned in one context to another. Near transfer (to similar contexts) happens fairly readily; far transfer (to dissimilar contexts) is rare and must be designed for.",
-    extendedSummary:"The transfer literature is humbling. Far transfer is not the byproduct of good local teaching; it requires deliberate work — varied contexts, abstracted principles, explicit comparison. The 'high road' (conscious abstraction) and 'low road' (automatic generalisation from heavy practice) of Perkins and Salomon name two routes worth designing for.",
+  T({ id:"learning-pyramid", room:"mem", wall:"W", t:0,
+    title:"The Learning Pyramid  ⚠",
+    author:"Attributed to NTL Institute (unverified)",
+    cluster:"Contested theory",
+    style:"stripes",
+    summary:"The popular claim that we retain 5% of what we hear, 10% of what we read, 75% of what we do, etc. The numbers have no empirical basis.",
+    extendedSummary:"The pyramid's specific percentages have never been traced to a primary study, and they survive because they encode a useful intuition (active beats passive) in a memorable visual. The underlying intuition is right; the numbers are made up. Cite retrieval, generation, or dual coding instead.",
     keypoints:[
-      "Near transfer happens; far transfer rarely happens by itself.",
-      "Vary contexts; abstract principles; compare cases.",
-      "'High road' transfer through conscious abstraction.",
-      "'Low road' transfer through heavy practice in many contexts."
+      "The retention percentages have no empirical basis.",
+      "The underlying intuition (active beats passive) is sound.",
+      "Better-evidenced concepts make the same point.",
+      "Retire the visual; keep the instinct."
     ],
-    evidence:"★★★★☆",
-    aiImplications:"Design tasks that require students to articulate why a principle applies, not just produce the application."
-  }),
-
-  T({ id:"deliberate-practice", room:"east", wall:"W", t:6,
-    title:"Deliberate Practice",
-    author:"Ericsson",
-    cluster:"Transfer & expertise",
-    style:"strokes",
-    summary:"Targeted, effortful practice on specific aspects of performance, with rich feedback and just beyond current ability. Distinct from mere experience.",
-    extendedSummary:"Ericsson's programme distinguishes the time you spent and the time that built expertise. Deliberate practice is focused, targets specific weaknesses, and depends on immediate, accurate feedback. The framework reshapes ideas of 'time in the discipline' — three years of deliberate practice usually outstrips ten years of repeated routine work.",
-    keypoints:[
-      "Focused, effortful, just beyond current ability.",
-      "Targets specific aspects of performance.",
-      "Requires rich, immediate feedback.",
-      "Mere experience is not enough."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI is well-placed to support targeted, feedback-rich practice; pair with human expert checkpoints."
-  }),
-
-  T({ id:"tacit-knowledge", room:"east", wall:"W", t:13,
-    title:"Tacit Knowledge",
-    author:"Polanyi, 1966",
-    cluster:"Transfer & expertise",
-    style:"layers",
-    summary:"'We know more than we can tell.' Much expert knowledge is procedural, embodied and resistant to articulation.",
-    extendedSummary:"Polanyi's insight matters wherever expertise is being taught: a substantial portion of what a master knows is not in their explanations and is acquired only through participation. Assessments that require tacit knowledge — bedside manner, design judgement, diagnostic intuition — are inherently AI-resistant because, by definition, that knowledge is not in any training data.",
-    keypoints:[
-      "Much expert knowledge cannot be fully articulated.",
-      "Acquired through participation, modelling and feedback.",
-      "Underwrites professional judgement.",
-      "Inherently AI-resistant — not in any training corpus."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"Tacit knowledge is, by definition, not in the training data; assessments requiring it are inherently AI-resistant."
+    evidence:"★☆☆☆☆",
+    aiImplications:"Retire the framework; cite retrieval, generation, or dual coding instead."
   }),
 
   // ═════════════════════════════════════════════════════════════════════════
-  // SOUTH · MOTIVATION, HUMANIST, ADULT, BEHAVIOURIST & TECH
+  // MOTIVATION GARDEN · MOTIVATION & SELF-REGULATION
   // ═════════════════════════════════════════════════════════════════════════
 
-  T({ id:"self-determination", room:"south", wall:"N", t:-10,
+  T({ id:"self-determination", room:"mot", wall:"N", t:-8,
     title:"Self-Determination Theory  ✦",
     author:"Deci & Ryan",
     cluster:"Motivation & self-regulation",
@@ -933,7 +927,7 @@ const THEORIES = [
     aiImplications:"AI must support autonomy, competence and relatedness — not corrode them through surveillance or substitution."
   }),
 
-  T({ id:"self-efficacy", room:"south", wall:"N", t:-4,
+  T({ id:"self-efficacy", room:"mot", wall:"N", t:-3,
     title:"Self-Efficacy",
     author:"Bandura; Zimmerman",
     cluster:"Motivation & self-regulation",
@@ -950,7 +944,7 @@ const THEORIES = [
     aiImplications:"Self-efficacy comes from succeeding at hard things, not from having things done for you."
   }),
 
-  T({ id:"mindset", room:"south", wall:"N", t:4,
+  T({ id:"mindset", room:"mot", wall:"N", t:3,
     title:"Mindset",
     author:"Dweck",
     cluster:"Motivation & self-regulation",
@@ -967,7 +961,7 @@ const THEORIES = [
     aiImplications:"AI that removes struggle removes the conditions under which a growth mindset would matter."
   }),
 
-  T({ id:"goal-orientation", room:"south", wall:"N", t:10,
+  T({ id:"goal-orientation", room:"mot", wall:"N", t:8,
     title:"Goal Orientation",
     author:"Nicholls; Dweck; Ames",
     cluster:"Motivation & self-regulation",
@@ -984,7 +978,7 @@ const THEORIES = [
     aiImplications:"AI makes performance-oriented gaming trivial; design assessment to require evidence of mastery."
   }),
 
-  T({ id:"self-regulated", room:"south", wall:"E", t:-11,
+  T({ id:"self-regulated", room:"mot", wall:"E", t:-5,
     title:"Self-Regulated Learning",
     author:"Zimmerman; Pintrich",
     cluster:"Motivation & self-regulation",
@@ -1001,7 +995,7 @@ const THEORIES = [
     aiImplications:"AI can develop or replace self-regulation; the design difference is whether the student does the regulating."
   }),
 
-  T({ id:"expectancy-value", room:"south", wall:"E", t:-5,
+  T({ id:"expectancy-value", room:"mot", wall:"E", t:0,
     title:"Expectancy-Value Theory",
     author:"Eccles; Wigfield",
     cluster:"Motivation & self-regulation",
@@ -1018,7 +1012,7 @@ const THEORIES = [
     aiImplications:"AI can build expectancy and surface relevance; do not let it take over the personal connection-making."
   }),
 
-  T({ id:"flow", room:"south", wall:"E", t:0,
+  T({ id:"flow", room:"mot", wall:"W", t:-5,
     title:"Flow",
     author:"Csikszentmihalyi",
     cluster:"Motivation & self-regulation",
@@ -1034,7 +1028,7 @@ const THEORIES = [
     evidence:"★★★☆☆"
   }),
 
-  T({ id:"attribution", room:"south", wall:"E", t:5,
+  T({ id:"attribution", room:"mot", wall:"W", t:5,
     title:"Attribution Theory",
     author:"Weiner, 1985",
     cluster:"Motivation & self-regulation",
@@ -1050,7 +1044,132 @@ const THEORIES = [
     evidence:"★★★★☆"
   }),
 
-  T({ id:"andragogy", room:"south", wall:"S", t:-12,
+  // ═════════════════════════════════════════════════════════════════════════
+  // SOCIAL AMPHITHEATRE · SOCIAL & SITUATED LEARNING + CONSTRUCTIVISM
+  // ═════════════════════════════════════════════════════════════════════════
+
+  T({ id:"zpd", room:"soc", wall:"N", t:-5,
+    title:"Zone of Proximal Development  ✦",
+    author:"Vygotsky, 1978",
+    cluster:"Social & situated",
+    style:"orbit",
+    summary:"The gap between what a learner can do alone and what they can do with expert or peer support. Learning happens at the upper edge of current ability.",
+    extendedSummary:"The ZPD is one of the most-cited concepts in education for a reason: it gives a precise place to aim. Tasks below the zone are boring; tasks above it are paralysing; tasks within it, with appropriate scaffolding, are where learning happens. The scaffold is provisional — designed to be withdrawn as the learner takes over.",
+    keypoints:[
+      "The gap between independent and supported performance.",
+      "Learning happens at the upper edge of current ability.",
+      "Scaffolding is just-enough, then withdrawn.",
+      "An aiming point, not a region of comfort."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"Design AI use as scaffolding within the zone, not as a leap over it; build in deliberate fading."
+  }),
+
+  T({ id:"social-constructivism", room:"soc", wall:"N", t:5,
+    title:"Social Constructivism",
+    author:"Vygotsky; Bruner",
+    cluster:"Social & situated",
+    style:"rings",
+    summary:"Knowledge is constructed through social interaction, with language as the primary mediating tool. Dialogue with more capable others drives conceptual development.",
+    extendedSummary:"Social constructivism positions the social as the engine of cognitive change, not a backdrop to it. The peer tutorial, the seminar discussion, the supervisor's question that reframes the draft — these are not pleasant adjuncts to learning but the site where it happens.",
+    keypoints:[
+      "Knowledge constructed through social interaction.",
+      "Language as primary mediating tool.",
+      "Dialogue with more capable others drives development.",
+      "AI cannot substitute for genuine dialogue."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI does not change its mind the way another person can; it cannot substitute for genuine dialogue."
+  }),
+
+  T({ id:"social-learning", room:"soc", wall:"S", t:-5,
+    title:"Social Learning Theory",
+    author:"Bandura, 1977",
+    cluster:"Social & situated",
+    style:"strokes",
+    summary:"People learn by observing, imitating and modelling others — mediated by attention, retention, reproduction and motivation. Vicarious reinforcement builds self-efficacy.",
+    extendedSummary:"Bandura's contribution was to broaden behaviourism into something that could account for the bulk of human learning — most of which happens through observation, not direct shaping. Modelling expert practice is one of the most pedagogically powerful moves available, and real experts thinking aloud usually beat any imitation of them.",
+    keypoints:[
+      "Learning by observation, imitation and modelling.",
+      "Mediated by attention, retention, reproduction, motivation.",
+      "Vicarious reinforcement builds self-efficacy.",
+      "Real experts thinking aloud usually beat AI."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"For modelling expert thinking, real experts thinking aloud usually beat AI."
+  }),
+
+  T({ id:"situated", room:"soc", wall:"S", t:5,
+    title:"Situated Learning & Communities of Practice",
+    author:"Lave & Wenger, 1991",
+    cluster:"Social & situated",
+    style:"rings",
+    summary:"Learning is inseparable from its social and physical context. Novices begin as peripheral participants in a community of practice and move toward fuller membership.",
+    extendedSummary:"Lave and Wenger's account explains why textbook competence does not always translate to professional competence: knowledge is bound to the practices that use it, and learning means becoming a member of the community that uses it. The educational implication is that 'authentic' tasks are not a pedagogical bonus but a structural necessity.",
+    keypoints:[
+      "Learning inseparable from context.",
+      "Novices begin as peripheral participants.",
+      "Trajectory toward fuller participation.",
+      "Knowledge bound to the practices that use it."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI is at most a tool within a community of practice, never a member of it."
+  }),
+
+  T({ id:"cog-apprenticeship", room:"soc", wall:"W", t:-5,
+    title:"Cognitive Apprenticeship",
+    author:"Collins, Brown & Newman",
+    cluster:"Social & situated",
+    style:"grid",
+    summary:"An apprenticeship model adapted for cognitive skills: modelling → coaching → scaffolding → articulation → reflection → exploration.",
+    extendedSummary:"The cognitive apprenticeship makes expert thinking visible in a way that traditional lecture cannot. The teacher thinks aloud, externalising the moves a competent reader/writer/analyst would make; then coaches the novice through the same moves; then steps back. AI does not have the disciplinary expertise the model assumes from the master.",
+    keypoints:[
+      "Model → coach → scaffold → articulate → reflect → explore.",
+      "Makes the thinking of experts visible.",
+      "Gradually transfers responsibility to the learner.",
+      "Depends on real disciplinary expertise."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI does not have the disciplinary expertise that the apprenticeship model assumes from the master."
+  }),
+
+  T({ id:"activity-theory", room:"soc", wall:"W", t:0,
+    title:"Activity Theory",
+    author:"Leontiev; Engeström",
+    cluster:"Social & situated",
+    style:"bauhaus",
+    summary:"Human activity is mediated by tools, rules, community and division of labour — and activity systems can be analysed for the contradictions that drive change.",
+    extendedSummary:"Engeström's expanded model gives a unit of analysis (the activity system) larger than the individual and richer than the dyad. It is a useful lens for analysing the contradictions AI is producing in higher education's activity systems — between the rules (academic integrity), the tools (generative AI), the community (students, staff), and the object (graduate capability).",
+    keypoints:[
+      "Activity = subject + object + tools + rules + community + division of labour.",
+      "Contradictions within and between systems drive change.",
+      "A lens for organisational learning.",
+      "Useful for analysing AI's effects on HE."
+    ],
+    evidence:"★★★☆☆",
+    aiImplications:"A useful lens for analysing the contradictions AI is producing in HE's activity systems."
+  }),
+
+  T({ id:"constructivism", room:"soc", wall:"W", t:5,
+    title:"Constructivism (general)",
+    author:"Piaget, Bruner, others",
+    cluster:"Constructivist",
+    style:"layers",
+    summary:"Learners actively build understanding from experience and interaction. Meaning is constructed, not transmitted.",
+    extendedSummary:"Constructivism is less a single theory than a family stance: knowledge is produced by the learner, anchored to prior structures, and revised through experience. It overlaps with schema theory, ZPD, situated learning and discovery learning — but constructivist teaching as a slogan often slips into 'discovery without structure', which is exactly what the evidence does not support.",
+    keypoints:[
+      "Learners actively construct understanding.",
+      "New input filters through existing mental structures.",
+      "Meaning is constructed, not transmitted.",
+      "Pure unguided 'discovery' is inefficient."
+    ]
+  }),
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ADULT LEARNING TOWER · ADULT & EXPERIENTIAL + CONSTRUCTIVIST APPROACHES
+  // ═════════════════════════════════════════════════════════════════════════
+
+  T({ id:"andragogy", room:"adu", wall:"S", t:-7,
     title:"Andragogy (Self-Directed Learning)",
     author:"Knowles, 1975",
     cluster:"Adult & experiential",
@@ -1068,7 +1187,7 @@ const THEORIES = [
     aiImplications:"Connect AI use to the experience already in the room; do not let it displace integration with deep professional knowledge."
   }),
 
-  T({ id:"kolb", room:"south", wall:"S", t:-6,
+  T({ id:"kolb", room:"adu", wall:"S", t:0,
     title:"Experiential Learning Cycle",
     author:"Kolb, 1984",
     cluster:"Adult & experiential",
@@ -1085,7 +1204,7 @@ const THEORIES = [
     aiImplications:"Reflection is one of the easiest things for AI to fake; structures that elicit specific situated detail are harder to game."
   }),
 
-  T({ id:"transformative", room:"south", wall:"S", t:0,
+  T({ id:"transformative", room:"adu", wall:"S", t:7,
     title:"Transformative Learning",
     author:"Mezirow, 1991",
     cluster:"Adult & experiential",
@@ -1102,7 +1221,7 @@ const THEORIES = [
     aiImplications:"AI smooths over the disorienting dilemmas that transformation requires; AI is at best a tool for processing the disruption."
   }),
 
-  T({ id:"reflective-practice", room:"south", wall:"S", t:6,
+  T({ id:"reflective-practice", room:"adu", wall:"E", t:-7,
     title:"Reflective Practice",
     author:"Schön, 1983",
     cluster:"Adult & experiential",
@@ -1119,7 +1238,7 @@ const THEORIES = [
     aiImplications:"Reflective writing is increasingly AI-generated; design it to require specific situated detail and connection to subsequent action."
   }),
 
-  T({ id:"deep-surface", room:"south", wall:"S", t:12,
+  T({ id:"deep-surface", room:"adu", wall:"E", t:0,
     title:"Deep & Surface Approaches  ✦",
     author:"Marton; Säljö; Entwistle; Ramsden",
     cluster:"Adult & experiential",
@@ -1136,7 +1255,7 @@ const THEORIES = [
     aiImplications:"AI massively reduces the cost of surface approaches; the cleanest test of whether design is AI-resilient."
   }),
 
-  T({ id:"heutagogy", room:"south", wall:"W", t:-11,
+  T({ id:"heutagogy", room:"adu", wall:"E", t:7,
     title:"Heutagogy",
     author:"Hase & Kenyon",
     cluster:"Adult & experiential",
@@ -1153,246 +1272,7 @@ const THEORIES = [
     aiImplications:"AI supports already-expert learners; novices need more structure than the framework provides."
   }),
 
-  T({ id:"multiple-intelligences", room:"south", wall:"W", t:-7,
-    title:"Multiple Intelligences  ⚠",
-    author:"Gardner",
-    cluster:"Contested theory",
-    style:"glyphs",
-    summary:"The claim that there are several relatively independent intelligences (linguistic, logical-mathematical, spatial, musical, bodily-kinesthetic, interpersonal, intrapersonal, naturalist).",
-    extendedSummary:"MI is widely popular and weakly evidenced. The 'intelligences' do not have the psychometric independence the theory requires — they correlate strongly enough to suggest a single general factor underneath. Its appeal is its inclusive vocabulary; the empirical claim does not stand up. AI's multimodality is a UDL win, not evidence for MI.",
-    keypoints:[
-      "Eight or nine 'intelligences', purportedly independent.",
-      "Psychometric independence not supported.",
-      "Frequently conflated with learning styles.",
-      "Appealing rhetorically; empirically thin."
-    ],
-    evidence:"★☆☆☆☆",
-    aiImplications:"AI's multimodality is a UDL win, not evidence for a contested theory of intelligence."
-  }),
-
-  T({ id:"behaviourism", room:"south", wall:"W", t:-3.5,
-    title:"Behaviourism",
-    author:"Skinner, 1971",
-    cluster:"Behaviourist",
-    style:"stripes",
-    summary:"Learning framed as observable change in behaviour, shaped by reinforcement and punishment. Useful for automating sub-skills with immediate feedback.",
-    extendedSummary:"Behaviourism's place in HE is narrow but not zero — drill-and-practice software, vocabulary spaced-repetition apps, and immediate-feedback referencing tutorials all exploit operant principles. The weakness is well-known: little to say about the higher-order thinking that defines academic study.",
-    keypoints:[
-      "Learning as observable change in behaviour.",
-      "Shaped by reinforcement and punishment.",
-      "Useful for sub-skill automation.",
-      "Limited account of higher-order thinking."
-    ],
-    evidence:"★★★★☆ — for the narrow claim about behavioural conditioning."
-  }),
-
-  T({ id:"mastery-learning", room:"south", wall:"W", t:0,
-    title:"Mastery Learning",
-    author:"Bloom, 1968",
-    cluster:"Behaviourist",
-    style:"bauhaus",
-    summary:"Students must demonstrate mastery of one unit before moving to the next. Time is the variable, attainment the constant.",
-    extendedSummary:"Mastery learning rejects the bell curve as a feature of teaching rather than a fact of nature: if every student has the time and support they need, most can reach proficiency. The trade-off is logistical — variable time-on-task is hard to schedule — and the model fits AI-tutoring naturally, provided the mastery checks are tightly aligned to integrative outcomes.",
-    keypoints:[
-      "Demonstrate mastery before moving on.",
-      "Time is variable; attainment is constant.",
-      "Prevents gap-accumulation.",
-      "Logistically demanding to schedule."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"A natural fit for AI tutoring; pair mastery checkpoints with integrative tasks across units."
-  }),
-
-  T({ id:"flipped", room:"south", wall:"W", t:3.5,
-    title:"Flipped Learning",
-    author:"Bergmann & Sams, 2012",
-    cluster:"Tech-based",
-    style:"strokes",
-    summary:"Direct instruction moves out of class — typically as video — freeing class time for higher-order application, dialogue and feedback.",
-    extendedSummary:"Flipped learning is structural: it rebalances where teacher and peers add most value. The model is only as good as the in-class half — if the application phase is just re-explanation, the flip wastes everyone's time. AI strengthens the pre-class half (personalised explanation) and threatens it (students may not engage with material a chatbot can summarise on demand).",
-    keypoints:[
-      "Direct instruction outside class.",
-      "Class time for application, dialogue, feedback.",
-      "Teacher & peers used where they add most value.",
-      "In-class half is the AI-resistant core."
-    ],
-    evidence:"★★★☆☆",
-    aiImplications:"AI strengthens pre-class material and threatens it; the in-class half is the AI-resistant core."
-  }),
-
-  T({ id:"connectivism", room:"south", wall:"W", t:7,
-    title:"Connectivism  ⚠",
-    author:"Siemens, 2005",
-    cluster:"Contested theory",
-    style:"glyphs",
-    summary:"The claim that in a networked age, learning is the process of forming and navigating networks — and that knowledge resides in the network.",
-    extendedSummary:"Connectivism overstates its case. Navigating networked information well still requires substantial domain knowledge in long-term memory — without that, search and curation are unmoored, and 'know-where' cannot substitute for know-that or know-how. Useful as a description of a working stance, weak as a foundational theory.",
-    keypoints:[
-      "Learning as network-formation and navigation.",
-      "Knowledge in the network of people, sources, tools.",
-      "Cannot substitute for individual schema-building.",
-      "Underwrites useful working practices, not foundational theory."
-    ],
-    evidence:"★★☆☆☆",
-    aiImplications:"Navigating networked information well requires substantial domain knowledge in long-term memory."
-  }),
-
-  T({ id:"digital-natives", room:"south", wall:"W", t:11,
-    title:"Digital Natives  ⚠",
-    author:"Prensky",
-    cluster:"Contested theory",
-    style:"glyphs",
-    summary:"The claim that learners born after a certain date have fundamentally different cognitive structures from those born before. Not supported by evidence.",
-    extendedSummary:"The 'natives/immigrants' frame collapses on contact with data: variation within generations is far larger than variation between them, and digital fluency is a function of access and practice, not birth date. The 'AI-native' framing repeats the error in a new wrapper.",
-    keypoints:[
-      "Cognitive differences by birth-cohort: not supported.",
-      "Variation within generations >> variation between them.",
-      "Fluency is a function of access and practice.",
-      "'AI-native' is the same framing recycled."
-    ],
-    evidence:"★☆☆☆☆",
-    aiImplications:"'AI-native' is the same framing in a new wrapper, with the same empirical problems."
-  }),
-
-  T({ id:"community-of-inquiry", room:"south", wall:"E", t:11,
-    title:"Community of Inquiry",
-    author:"Garrison, Anderson, Archer",
-    cluster:"Tech-based",
-    style:"orbit",
-    summary:"Effective online learning depends on the interplay of three 'presences': cognitive, social and teaching.",
-    extendedSummary:"The CoI framework is the most influential model of online learning design. Its sharpest implication is that purely automated provision (high cognitive presence, low teaching/social presence) reliably underperforms — and that AI's ability to perform 'teaching presence' raises hard questions about whether anyone is actually teaching the course.",
-    keypoints:[
-      "Cognitive presence — meaning-making through discourse.",
-      "Social presence — projecting oneself as a person.",
-      "Teaching presence — design, facilitation, direction.",
-      "All three needed; automation erodes the latter two."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"If AI is doing the work of teaching presence, where is the real teaching presence?"
-  }),
-
-  // ═════════════════════════════════════════════════════════════════════════
-  // WEST · SOCIAL, SITUATED, CONSTRUCTIVIST & EAP-SPECIFIC
-  // ═════════════════════════════════════════════════════════════════════════
-
-  T({ id:"zpd", room:"west", wall:"N", t:-10,
-    title:"Zone of Proximal Development  ✦",
-    author:"Vygotsky, 1978",
-    cluster:"Social & situated",
-    style:"orbit",
-    summary:"The gap between what a learner can do alone and what they can do with expert or peer support. Learning happens at the upper edge of current ability.",
-    extendedSummary:"The ZPD is one of the most-cited concepts in education for a reason: it gives a precise place to aim. Tasks below the zone are boring; tasks above it are paralysing; tasks within it, with appropriate scaffolding, are where learning happens. The scaffold is provisional — designed to be withdrawn as the learner takes over.",
-    keypoints:[
-      "The gap between independent and supported performance.",
-      "Learning happens at the upper edge of current ability.",
-      "Scaffolding is just-enough, then withdrawn.",
-      "An aiming point, not a region of comfort."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"Design AI use as scaffolding within the zone, not as a leap over it; build in deliberate fading."
-  }),
-
-  T({ id:"constructivism", room:"west", wall:"N", t:-3,
-    title:"Constructivism (general)",
-    author:"Piaget, Bruner, others",
-    cluster:"Constructivist",
-    style:"layers",
-    summary:"Learners actively build understanding from experience and interaction. Meaning is constructed, not transmitted.",
-    extendedSummary:"Constructivism is less a single theory than a family stance: knowledge is produced by the learner, anchored to prior structures, and revised through experience. It overlaps with schema theory, ZPD, situated learning and discovery learning — but constructivist teaching as a slogan often slips into 'discovery without structure', which is exactly what the evidence does not support.",
-    keypoints:[
-      "Learners actively construct understanding.",
-      "New input filters through existing mental structures.",
-      "Meaning is constructed, not transmitted.",
-      "Pure unguided 'discovery' is inefficient."
-    ]
-  }),
-
-  T({ id:"social-constructivism", room:"west", wall:"N", t:3,
-    title:"Social Constructivism",
-    author:"Vygotsky; Bruner",
-    cluster:"Social & situated",
-    style:"rings",
-    summary:"Knowledge is constructed through social interaction, with language as the primary mediating tool. Dialogue with more capable others drives conceptual development.",
-    extendedSummary:"Social constructivism positions the social as the engine of cognitive change, not a backdrop to it. The peer tutorial, the seminar discussion, the supervisor's question that reframes the draft — these are not pleasant adjuncts to learning but the site where it happens.",
-    keypoints:[
-      "Knowledge constructed through social interaction.",
-      "Language as primary mediating tool.",
-      "Dialogue with more capable others drives development.",
-      "AI cannot substitute for genuine dialogue."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI does not change its mind the way another person can; it cannot substitute for genuine dialogue."
-  }),
-
-  T({ id:"social-learning", room:"west", wall:"N", t:10,
-    title:"Social Learning Theory",
-    author:"Bandura, 1977",
-    cluster:"Social & situated",
-    style:"strokes",
-    summary:"People learn by observing, imitating and modelling others — mediated by attention, retention, reproduction and motivation. Vicarious reinforcement builds self-efficacy.",
-    extendedSummary:"Bandura's contribution was to broaden behaviourism into something that could account for the bulk of human learning — most of which happens through observation, not direct shaping. Modelling expert practice is one of the most pedagogically powerful moves available, and real experts thinking aloud usually beat any imitation of them.",
-    keypoints:[
-      "Learning by observation, imitation and modelling.",
-      "Mediated by attention, retention, reproduction, motivation.",
-      "Vicarious reinforcement builds self-efficacy.",
-      "Real experts thinking aloud usually beat AI."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"For modelling expert thinking, real experts thinking aloud usually beat AI."
-  }),
-
-  T({ id:"situated", room:"west", wall:"W", t:-12,
-    title:"Situated Learning & Communities of Practice",
-    author:"Lave & Wenger, 1991",
-    cluster:"Social & situated",
-    style:"rings",
-    summary:"Learning is inseparable from its social and physical context. Novices begin as peripheral participants in a community of practice and move toward fuller membership.",
-    extendedSummary:"Lave and Wenger's account explains why textbook competence does not always translate to professional competence: knowledge is bound to the practices that use it, and learning means becoming a member of the community that uses it. The educational implication is that 'authentic' tasks are not a pedagogical bonus but a structural necessity.",
-    keypoints:[
-      "Learning inseparable from context.",
-      "Novices begin as peripheral participants.",
-      "Trajectory toward fuller participation.",
-      "Knowledge bound to the practices that use it."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI is at most a tool within a community of practice, never a member of it."
-  }),
-
-  T({ id:"cog-apprenticeship", room:"west", wall:"W", t:-6,
-    title:"Cognitive Apprenticeship",
-    author:"Collins, Brown & Newman",
-    cluster:"Social & situated",
-    style:"grid",
-    summary:"An apprenticeship model adapted for cognitive skills: modelling → coaching → scaffolding → articulation → reflection → exploration.",
-    extendedSummary:"The cognitive apprenticeship makes expert thinking visible in a way that traditional lecture cannot. The teacher thinks aloud, externalising the moves a competent reader/writer/analyst would make; then coaches the novice through the same moves; then steps back. AI does not have the disciplinary expertise the model assumes from the master.",
-    keypoints:[
-      "Model → coach → scaffold → articulate → reflect → explore.",
-      "Makes the thinking of experts visible.",
-      "Gradually transfers responsibility to the learner.",
-      "Depends on real disciplinary expertise."
-    ],
-    evidence:"★★★★☆",
-    aiImplications:"AI does not have the disciplinary expertise that the apprenticeship model assumes from the master."
-  }),
-
-  T({ id:"activity-theory", room:"west", wall:"W", t:0,
-    title:"Activity Theory",
-    author:"Leontiev; Engeström",
-    cluster:"Social & situated",
-    style:"bauhaus",
-    summary:"Human activity is mediated by tools, rules, community and division of labour — and activity systems can be analysed for the contradictions that drive change.",
-    extendedSummary:"Engeström's expanded model gives a unit of analysis (the activity system) larger than the individual and richer than the dyad. It is a useful lens for analysing the contradictions AI is producing in higher education's activity systems — between the rules (academic integrity), the tools (generative AI), the community (students, staff), and the object (graduate capability).",
-    keypoints:[
-      "Activity = subject + object + tools + rules + community + division of labour.",
-      "Contradictions within and between systems drive change.",
-      "A lens for organisational learning.",
-      "Useful for analysing AI's effects on HE."
-    ],
-    evidence:"★★★☆☆",
-    aiImplications:"A useful lens for analysing the contradictions AI is producing in HE's activity systems."
-  }),
-
-  T({ id:"discovery", room:"west", wall:"W", t:6,
+  T({ id:"discovery", room:"adu", wall:"W", t:-7,
     title:"Discovery Learning",
     author:"Bruner, 1961",
     cluster:"Constructivist",
@@ -1408,7 +1288,7 @@ const THEORIES = [
     evidence:"★★★☆☆ — guided discovery only."
   }),
 
-  T({ id:"inquiry", room:"west", wall:"W", t:12,
+  T({ id:"inquiry", room:"adu", wall:"W", t:0,
     title:"Inquiry-Based Learning",
     author:"Pedaste et al., 2015",
     cluster:"Constructivist",
@@ -1424,7 +1304,7 @@ const THEORIES = [
     evidence:"★★★☆☆"
   }),
 
-  T({ id:"pbl", room:"west", wall:"S", t:-10,
+  T({ id:"pbl", room:"adu", wall:"W", t:7,
     title:"Problem-Based Learning",
     author:"Barrows & Tamblyn, 1980",
     cluster:"Constructivist",
@@ -1441,7 +1321,7 @@ const THEORIES = [
     aiImplications:"Design AI use into PBL deliberately as a research tool or simulation — never as substitute for the group's reasoning."
   }),
 
-  T({ id:"active-learning", room:"west", wall:"S", t:-5,
+  T({ id:"active-learning", room:"adu", wall:"S", t:-7,
     title:"Active Learning",
     author:"Freeman et al., 2014",
     cluster:"Constructivist",
@@ -1457,7 +1337,11 @@ const THEORIES = [
     evidence:"★★★★★"
   }),
 
-  T({ id:"swales", room:"west", wall:"S", t:0,
+  // ═════════════════════════════════════════════════════════════════════════
+  // EAP SPIRE · EAP-SPECIFIC FRAMEWORKS
+  // ═════════════════════════════════════════════════════════════════════════
+
+  T({ id:"swales", room:"eap", wall:"E", t:-9,
     title:"Swalesian Genre Pedagogy",
     author:"Swales, 1990",
     cluster:"EAP-specific",
@@ -1472,7 +1356,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"academic-literacies", room:"west", wall:"S", t:5,
+  T({ id:"academic-literacies", room:"eap", wall:"E", t:-3,
     title:"Academic Literacies",
     author:"Lea & Street, 2006",
     cluster:"EAP-specific",
@@ -1487,7 +1371,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"sfl", room:"west", wall:"E", t:-13,
+  T({ id:"sfl", room:"eap", wall:"E", t:3,
     title:"Systemic Functional Linguistics",
     author:"Halliday, 2003",
     cluster:"EAP-specific",
@@ -1503,7 +1387,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"lct", room:"west", wall:"E", t:-7,
+  T({ id:"lct", room:"eap", wall:"E", t:9,
     title:"Legitimation Code Theory",
     author:"Maton, 2014",
     cluster:"EAP-specific",
@@ -1518,7 +1402,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"genre-process", room:"west", wall:"E", t:6,
+  T({ id:"genre-process", room:"eap", wall:"W", t:-9,
     title:"Genre as Social Process",
     author:"Sydney School & beyond",
     cluster:"EAP-specific",
@@ -1533,7 +1417,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"dialogic-feedback", room:"west", wall:"E", t:13,
+  T({ id:"dialogic-feedback", room:"eap", wall:"W", t:-3,
     title:"Dialogic Feedback",
     author:"composite",
     cluster:"EAP-specific",
@@ -1548,7 +1432,7 @@ const THEORIES = [
     ]
   }),
 
-  T({ id:"discipline-ct", room:"west", wall:"S", t:10,
+  T({ id:"discipline-ct", room:"eap", wall:"W", t:3,
     title:"Discipline-Specific Critical Thinking",
     author:"Jones, 2015",
     cluster:"EAP-specific",
@@ -1561,6 +1445,114 @@ const THEORIES = [
       "Transfer across disciplines is not automatic.",
       "Teach the discipline's moves explicitly."
     ]
+  }),
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // TAXONOMY TOWER · TAXONOMIES, TRANSFER & EXPERTISE
+  // ═════════════════════════════════════════════════════════════════════════
+
+  T({ id:"bloom", room:"tax", wall:"S", t:-4,
+    title:"Bloom's Revised Taxonomy",
+    author:"Anderson & Krathwohl, 2001",
+    cluster:"Taxonomy",
+    style:"stripes",
+    summary:"A hierarchy of cognitive processes — remember, understand, apply, analyse, evaluate, create — that gives shared vocabulary for designing tasks at progressively demanding levels.",
+    extendedSummary:"Bloom's value is less the hierarchy than the diagnostic. Reading a module's outcomes through the verbs reveals when 'apply' is doing all the work and 'evaluate' and 'create' are missing. The revised taxonomy added a second dimension — factual, conceptual, procedural, metacognitive knowledge — that often catches misalignment a single dimension would miss.",
+    keypoints:[
+      "Remember → Understand → Apply → Analyse → Evaluate → Create.",
+      "Knowledge dimensions: factual, conceptual, procedural, metacognitive.",
+      "A diagnostic for the cognitive demand of outcomes and assessments.",
+      "Useful for spotting AI-vulnerability: too many low-level outcomes."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"A useful diagnostic for AI-vulnerability: clusters of low-level outcomes need higher-level companions."
+  }),
+
+  T({ id:"solo", room:"tax", wall:"S", t:4,
+    title:"SOLO Taxonomy",
+    author:"Biggs & Collis",
+    cluster:"Taxonomy",
+    style:"rings",
+    summary:"A hierarchy of structural complexity in student understanding: prestructural, unistructural, multistructural, relational, extended abstract.",
+    extendedSummary:"Where Bloom tells you what the student should do, SOLO tells you what their thinking should look like. The leap from multistructural (many ideas listed) to relational (ideas connected into a system) is the move most undergraduate work fails to make — and the move AI-generated text most reliably misses.",
+    keypoints:[
+      "Prestructural — no relevant grasp.",
+      "Unistructural — one relevant aspect.",
+      "Multistructural — several aspects, not connected.",
+      "Relational — connected into a coherent whole.",
+      "Extended abstract — generalised beyond the case."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI output looks multi-structural at first glance; extended-abstract integration distinguishes student-led work."
+  }),
+
+  T({ id:"threshold", room:"tax", wall:"E", t:-4,
+    title:"Threshold Concepts  ✦",
+    author:"Meyer & Land",
+    cluster:"Taxonomy",
+    style:"bauhaus",
+    summary:"Within each discipline there are concepts that, once grasped, transform a learner's view of the subject. They are troublesome, irreversible and integrative — and progress depends on crossing them.",
+    extendedSummary:"Threshold concepts are the doors between superficial competence and real disciplinary thinking. Opportunity cost in economics, statistical significance in social science, complex numbers in maths — students can perform the surface operations without crossing the threshold, and the apparent competence is fragile. Designing for threshold crossings means designing for productive struggle and conceptual change, not for clarity.",
+    keypoints:[
+      "Transformative — change the learner's view of the field.",
+      "Troublesome — counter-intuitive or conceptually difficult.",
+      "Irreversible — hard to unlearn once crossed.",
+      "Integrative — reveal previously hidden interrelations.",
+      "Often accompanied by 'liminal' states of partial understanding."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI explanations are characteristically too clear; the productive struggle is what the threshold actually requires."
+  }),
+
+  T({ id:"transfer", room:"tax", wall:"E", t:4,
+    title:"Transfer of Learning",
+    author:"Thorndike; Perkins & Salomon",
+    cluster:"Transfer & expertise",
+    style:"orbit",
+    summary:"Applying what is learned in one context to another. Near transfer (to similar contexts) happens fairly readily; far transfer (to dissimilar contexts) is rare and must be designed for.",
+    extendedSummary:"The transfer literature is humbling. Far transfer is not the byproduct of good local teaching; it requires deliberate work — varied contexts, abstracted principles, explicit comparison. The 'high road' (conscious abstraction) and 'low road' (automatic generalisation from heavy practice) of Perkins and Salomon name two routes worth designing for.",
+    keypoints:[
+      "Near transfer happens; far transfer rarely happens by itself.",
+      "Vary contexts; abstract principles; compare cases.",
+      "'High road' transfer through conscious abstraction.",
+      "'Low road' transfer through heavy practice in many contexts."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"Design tasks that require students to articulate why a principle applies, not just produce the application."
+  }),
+
+  T({ id:"deliberate-practice", room:"tax", wall:"W", t:-4,
+    title:"Deliberate Practice",
+    author:"Ericsson",
+    cluster:"Transfer & expertise",
+    style:"strokes",
+    summary:"Targeted, effortful practice on specific aspects of performance, with rich feedback and just beyond current ability. Distinct from mere experience.",
+    extendedSummary:"Ericsson's programme distinguishes the time you spent and the time that built expertise. Deliberate practice is focused, targets specific weaknesses, and depends on immediate, accurate feedback. The framework reshapes ideas of 'time in the discipline' — three years of deliberate practice usually outstrips ten years of repeated routine work.",
+    keypoints:[
+      "Focused, effortful, just beyond current ability.",
+      "Targets specific aspects of performance.",
+      "Requires rich, immediate feedback.",
+      "Mere experience is not enough."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"AI is well-placed to support targeted, feedback-rich practice; pair with human expert checkpoints."
+  }),
+
+  T({ id:"tacit-knowledge", room:"tax", wall:"W", t:4,
+    title:"Tacit Knowledge",
+    author:"Polanyi, 1966",
+    cluster:"Transfer & expertise",
+    style:"layers",
+    summary:"'We know more than we can tell.' Much expert knowledge is procedural, embodied and resistant to articulation.",
+    extendedSummary:"Polanyi's insight matters wherever expertise is being taught: a substantial portion of what a master knows is not in their explanations and is acquired only through participation. Assessments that require tacit knowledge — bedside manner, design judgement, diagnostic intuition — are inherently AI-resistant because, by definition, that knowledge is not in any training data.",
+    keypoints:[
+      "Much expert knowledge cannot be fully articulated.",
+      "Acquired through participation, modelling and feedback.",
+      "Underwrites professional judgement.",
+      "Inherently AI-resistant — not in any training corpus."
+    ],
+    evidence:"★★★★☆",
+    aiImplications:"Tacit knowledge is, by definition, not in the training data; assessments requiring it are inherently AI-resistant."
   }),
 
 ];

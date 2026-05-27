@@ -1,14 +1,12 @@
-// gallery/world.js — build the 3D scene (rooms, walls w/ doorways, artworks, signs)
-// Rooms have independent sizeX and sizeZ so the layout is non-uniform.
+// gallery/world.js — load cathedral GLB + place artworks in 8 radial wings
 
 (function () {
-  const WALL_H = 5.6;          // ceiling height (a little taller for the larger rooms)
-  const WALL_T = 0.3;          // wall thickness
-  const DOOR_W = 4;            // doorway width
-  const DOOR_H = 3.5;          // doorway opening height
+  const WALL_H = 5.6;
+  const WALL_T = 0.3;
+  const DOOR_W = 4;
   const ART_W = 2.4;
   const ART_H = 1.8;
-  const ART_Y = 2.1;           // centre of artwork in metres
+  const ART_Y = 2.1;
   const LABEL_W = 2.6;
   const LABEL_H = 0.7;
   const LABEL_Y = 0.78;
@@ -19,126 +17,74 @@
     t.needsUpdate = true;
     return t;
   }
-  function tiledTex(canvas, repX, repY) {
-    const t = texFromCanvas(canvas);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(repX, repY);
-    return t;
+
+  // ── coordinate transforms for rotated wings ──────────────────────────────
+  // angle α: 0°=East(+X), 45°=NE, 90°=North(-Z), etc.
+  // Forward: local → world
+  function localToWorld(room, lx, lz) {
+    const a = (room.angle || 0) * Math.PI / 180;
+    const c = Math.cos(a), s = Math.sin(a);
+    return [
+      room.center[0] + lx * c + lz * s,
+      room.center[1] + (-lx * s + lz * c)
+    ];
+  }
+  // Inverse: world → local
+  function worldToLocal(room, wx, wz) {
+    const a = (room.angle || 0) * Math.PI / 180;
+    const c = Math.cos(a), s = Math.sin(a);
+    const dx = wx - room.center[0], dz = wz - room.center[1];
+    return [dx * c - dz * s, dx * s + dz * c];
   }
 
-  // Build a thick box from a 2D segment.
-  function buildWall(scene, from, to, material, height = WALL_H) {
-    const dx = to[0] - from[0];
-    const dz = to[1] - from[1];
-    const len = Math.hypot(dx, dz);
-    if (len < 0.05) return null;
-    const geom = new THREE.BoxGeometry(len, height, WALL_T);
-    const mesh = new THREE.Mesh(geom, material);
-    mesh.position.set((from[0] + to[0]) / 2, height / 2, (from[1] + to[1]) / 2);
-    const angle = Math.atan2(dz, dx);
-    mesh.rotation.y = -angle;
-    mesh.userData.isWall = true;
-    scene.add(mesh);
-    return mesh;
-  }
-
-  // Given a room and a wall side, return segment endpoints + door cut.
-  function wallSegments(room, side) {
-    const [cx, cz] = room.center;
-    const halfX = room.sizeX / 2;
-    const halfZ = room.sizeZ / 2;
-    const hasDoor = room.doors.includes(side);
-    let a, b, axis;
-    if (side === "N") { a = [cx - halfX, cz - halfZ]; b = [cx + halfX, cz - halfZ]; axis = "x"; }
-    if (side === "S") { a = [cx - halfX, cz + halfZ]; b = [cx + halfX, cz + halfZ]; axis = "x"; }
-    if (side === "E") { a = [cx + halfX, cz - halfZ]; b = [cx + halfX, cz + halfZ]; axis = "z"; }
-    if (side === "W") { a = [cx - halfX, cz - halfZ]; b = [cx - halfX, cz + halfZ]; axis = "z"; }
-    if (!hasDoor) return [{ from: a, to: b }];
-    const doorMid = axis === "x" ? cx : cz;
-    const halfD = DOOR_W / 2;
-    if (axis === "x") {
-      return [
-        { from: a, to: [doorMid - halfD, a[1]] },
-        { from: [doorMid + halfD, a[1]], to: b },
-      ];
-    } else {
-      return [
-        { from: a, to: [a[0], doorMid - halfD] },
-        { from: [a[0], doorMid + halfD], to: b },
-      ];
-    }
-  }
-
-  function buildLintel(scene, room, side, material) {
-    if (!room.doors.includes(side)) return;
-    const [cx, cz] = room.center;
-    const halfX = room.sizeX / 2;
-    const halfZ = room.sizeZ / 2;
-    const lintelH = WALL_H - DOOR_H;
-    const yMid = DOOR_H + lintelH / 2;
-    let pos, rotY, len;
-    if (side === "N") { pos = [cx, yMid, cz - halfZ]; rotY = 0; len = DOOR_W; }
-    if (side === "S") { pos = [cx, yMid, cz + halfZ]; rotY = 0; len = DOOR_W; }
-    if (side === "E") { pos = [cx + halfX, yMid, cz]; rotY = Math.PI / 2; len = DOOR_W; }
-    if (side === "W") { pos = [cx - halfX, yMid, cz]; rotY = Math.PI / 2; len = DOOR_W; }
-    const geom = new THREE.BoxGeometry(len, lintelH, WALL_T);
-    const mesh = new THREE.Mesh(geom, material);
-    mesh.position.set(...pos);
-    mesh.rotation.y = rotY;
-    mesh.userData.isWall = true;
-    scene.add(mesh);
-    return mesh;
-  }
-
+  // ── artwork placement ────────────────────────────────────────────────────
   function buildArtwork(scene, theory, room, raycastTargets) {
-    const [cx, cz] = room.center;
     const halfX = room.sizeX / 2;
     const halfZ = room.sizeZ / 2;
     const side = theory.wall;
     const inset = WALL_T / 2 + 0.02;
-    let pos, rotY, labelPos;
+    let lx, lz, localRotY;
+
     if (room.shape === "circle") {
       const radius = Math.min(room.sizeX, room.sizeZ) / 2 - 0.12;
       const sideAngles = { N: Math.PI, E: -Math.PI / 2, S: 0, W: Math.PI / 2 };
       const base = sideAngles[side] ?? 0;
       const arcOffset = theory.t / Math.max(radius, 1);
       const a = base + arcOffset;
-      const wallX = cx - Math.sin(a) * radius;
-      const wallZ = cz - Math.cos(a) * radius;
+      const wallX = -Math.sin(a) * radius;
+      const wallZ = -Math.cos(a) * radius;
       const facing = a + Math.PI;
-      pos = [wallX, ART_Y, wallZ];
-      labelPos = [wallX, LABEL_Y, wallZ];
-      rotY = facing;
-    } else if (side === "N") {
-      pos      = [cx + theory.t, ART_Y,   cz - halfZ + inset]; rotY = 0;
-      labelPos = [cx + theory.t, LABEL_Y, cz - halfZ + inset];
-    }
-    if (side === "S") {
-      pos      = [cx + theory.t, ART_Y,   cz + halfZ - inset]; rotY = Math.PI;
-      labelPos = [cx + theory.t, LABEL_Y, cz + halfZ - inset];
-    }
-    if (side === "E") {
-      pos      = [cx + halfX - inset, ART_Y,   cz + theory.t]; rotY = -Math.PI / 2;
-      labelPos = [cx + halfX - inset, LABEL_Y, cz + theory.t];
-    }
-    if (side === "W") {
-      pos      = [cx - halfX + inset, ART_Y,   cz + theory.t]; rotY = Math.PI / 2;
-      labelPos = [cx - halfX + inset, LABEL_Y, cz + theory.t];
+
+      const wx = room.center[0] + wallX;
+      const wz = room.center[1] + wallZ;
+      placeArt(scene, theory, wx, wz, facing, raycastTargets);
+      return;
     }
 
+    if (side === "N") { lx = theory.t; lz = -halfZ + inset; localRotY = 0; }
+    if (side === "S") { lx = theory.t; lz = halfZ - inset; localRotY = Math.PI; }
+    if (side === "E") { lz = theory.t; lx = halfX - inset; localRotY = -Math.PI / 2; }
+    if (side === "W") { lz = theory.t; lx = -halfX + inset; localRotY = Math.PI / 2; }
+
+    const [wx, wz] = localToWorld(room, lx, lz);
+    const worldRotY = localRotY + (room.angle || 0) * Math.PI / 180;
+    placeArt(scene, theory, wx, wz, worldRotY, raycastTargets);
+  }
+
+  function placeArt(scene, theory, wx, wz, rotY, raycastTargets) {
     // Frame
     const frameGeom = new THREE.BoxGeometry(ART_W + 0.2, ART_H + 0.2, 0.06);
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e1a13, roughness: 0.7 });
     const frame = new THREE.Mesh(frameGeom, frameMat);
-    frame.position.set(...pos);
+    frame.position.set(wx, ART_Y, wz);
     frame.rotation.y = rotY;
     scene.add(frame);
 
-    // Artwork itself
+    // Artwork canvas
     const artCanvas = GalleryArt.makeArtworkCanvas(theory);
     const artMat = new THREE.MeshBasicMaterial({ map: texFromCanvas(artCanvas) });
     const art = new THREE.Mesh(new THREE.PlaneGeometry(ART_W, ART_H), artMat);
-    art.position.set(...pos);
+    art.position.set(wx, ART_Y, wz);
     art.position.x += Math.sin(rotY) * 0.04;
     art.position.z += Math.cos(rotY) * 0.04;
     art.rotation.y = rotY;
@@ -146,11 +92,11 @@
     scene.add(art);
     raycastTargets.push(art);
 
-    // Label plaque (auto-fitted text)
+    // Label plaque
     const labelCanvas = GalleryArt.makeLabelCanvas(theory);
     const labelMat = new THREE.MeshBasicMaterial({ map: texFromCanvas(labelCanvas) });
     const label = new THREE.Mesh(new THREE.PlaneGeometry(LABEL_W, LABEL_H), labelMat);
-    label.position.set(...labelPos);
+    label.position.set(wx, LABEL_Y, wz);
     label.position.x += Math.sin(rotY) * 0.045;
     label.position.z += Math.cos(rotY) * 0.045;
     label.rotation.y = rotY;
@@ -159,180 +105,62 @@
     raycastTargets.push(label);
   }
 
-  // Doorway sign above each doorway — on the OUTER face of the wall.
-  function buildDoorwaySign(scene, room, side) {
-    if (!room.doors.includes(side)) return;
-    const [cx, cz] = room.center;
-    const halfX = room.sizeX / 2;
-    const halfZ = room.sizeZ / 2;
-    const sign = GalleryArt.makeRoomSignCanvas(room);
-    const mat = new THREE.MeshBasicMaterial({ map: texFromCanvas(sign) });
-    // Larger sign canvas (and physical) means more room for text. 4.4×1.32 keeps a
-    // 3.33:1 aspect ratio matching the new canvas.
-    const sw = 4.4, sh = 1.32;
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), mat);
-    const y = DOOR_H + 0.75;
-    const out = 0.18;
-    let pos, rotY;
-    if (side === "N") { pos = [cx, y, cz - halfZ - out]; rotY = Math.PI; }
-    if (side === "S") { pos = [cx, y, cz + halfZ + out]; rotY = 0; }
-    if (side === "E") { pos = [cx + halfX + out, y, cz]; rotY = Math.PI / 2; }
-    if (side === "W") { pos = [cx - halfX - out, y, cz]; rotY = -Math.PI / 2; }
-    plane.position.set(...pos);
-    plane.rotation.y = rotY;
-    scene.add(plane);
-  }
-
-  // Arrow signposts in the atrium pointing to each wing.
-  function buildAtriumArrows(scene) {
-    const atrium = ROOMS.atrium;
-    [
-      { side: "N", text: "→  Cognitive Architecture", target: ROOMS.north },
-      { side: "S", text: "→  Motivation, Humanist & Tech", target: ROOMS.south },
-      { side: "E", text: "→  Memory, Practice & Taxonomies", target: ROOMS.east },
-      { side: "W", text: "→  Social, Situated & EAP", target: ROOMS.west },
-    ].forEach(({ side, text, target }) => {
-      const c = GalleryArt.makeArrowSignCanvas(text, target.accent);
-      const mat = new THREE.MeshStandardMaterial({ map: texFromCanvas(c), emissive: 0x000000 });
-      // Larger physical arrow sign so the text reads from across the atrium
-      const plane = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.95), mat);
-      const [cx, cz] = atrium.center;
-      const halfX = atrium.sizeX / 2;
-      const halfZ = atrium.sizeZ / 2;
-      const offset = 5.0;
-      let pos, rotY;
-      const y = 2.5;
-      if (side === "N") { pos = [cx + offset, y, cz - halfZ + 0.03]; rotY = 0; }
-      if (side === "S") { pos = [cx - offset, y, cz + halfZ - 0.03]; rotY = Math.PI; }
-      if (side === "E") { pos = [cx + halfX - 0.03, y, cz + offset]; rotY = -Math.PI / 2; }
-      if (side === "W") { pos = [cx - halfX + 0.03, y, cz - offset]; rotY = Math.PI / 2; }
-      plane.position.set(...pos);
-      plane.rotation.y = rotY;
-      scene.add(plane);
-    });
-  }
-
-  // Return signs inside each wing pointing back to the atrium.
-  function buildWingReturnSigns(scene) {
-    for (const key of ["north", "south", "east", "west"]) {
+  // ── wing entrance signs ──────────────────────────────────────────────────
+  function buildWingEntranceSigns(scene) {
+    for (const key of Object.keys(ROOMS)) {
+      if (key === "atrium") continue;
       const room = ROOMS[key];
-      const door = room.doors[0];
-      const c = GalleryArt.makeArrowSignCanvas("↩  Atrium", "#b88c3a");
-      const mat = new THREE.MeshStandardMaterial({ map: texFromCanvas(c) });
-      const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.74), mat);
-      const [cx, cz] = room.center;
-      const halfX = room.sizeX / 2;
-      const halfZ = room.sizeZ / 2;
-      const off = 3.6;
-      const y = 2.4;
-      let pos, rotY;
-      if (door === "N") { pos = [cx - off, y, cz - halfZ + 0.03]; rotY = 0; }
-      if (door === "S") { pos = [cx + off, y, cz + halfZ - 0.03]; rotY = Math.PI; }
-      if (door === "E") { pos = [cx + halfX - 0.03, y, cz - off]; rotY = -Math.PI / 2; }
-      if (door === "W") { pos = [cx - halfX + 0.03, y, cz + off]; rotY = Math.PI / 2; }
-      plane.position.set(...pos);
-      plane.rotation.y = rotY;
+      const a = (room.angle || 0) * Math.PI / 180;
+      const signDist = 15;
+      const sx = signDist * Math.cos(a);
+      const sz = -signDist * Math.sin(a);
+      const sign = GalleryArt.makeRoomSignCanvas(room);
+      const mat = new THREE.MeshBasicMaterial({ map: texFromCanvas(sign) });
+      const sw = 4.4, sh = 1.32;
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), mat);
+      plane.position.set(sx, 4.0, sz);
+      plane.rotation.y = a + Math.PI;
+      scene.add(plane);
+
+      // Return sign inside the wing pointing back
+      const retDist = room.sizeX * 0.3 + 18;
+      const [rx, rz] = localToWorld(room, -room.sizeX * 0.3, -3);
+      const retCanvas = GalleryArt.makeArrowSignCanvas("↩  Central Dome", "#b88c3a");
+      const retMat = new THREE.MeshStandardMaterial({ map: texFromCanvas(retCanvas) });
+      const retPlane = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.74), retMat);
+      retPlane.position.set(rx, 2.4, rz);
+      retPlane.rotation.y = a + Math.PI;
+      scene.add(retPlane);
+    }
+  }
+
+  // ── arrow signs in the atrium ────────────────────────────────────────────
+  function buildAtriumArrows(scene) {
+    for (const key of Object.keys(ROOMS)) {
+      if (key === "atrium") continue;
+      const room = ROOMS[key];
+      const a = (room.angle || 0) * Math.PI / 180;
+      const dist = 11;
+      const ax = dist * Math.cos(a);
+      const az = -dist * Math.sin(a);
+      const text = "→  " + room.name;
+      const c = GalleryArt.makeArrowSignCanvas(text, room.accent);
+      const mat = new THREE.MeshStandardMaterial({ map: texFromCanvas(c), emissive: 0x000000 });
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.95), mat);
+      plane.position.set(ax, 2.5, az);
+      plane.rotation.y = a;
       scene.add(plane);
     }
   }
 
-  function buildRoom(scene, room, raycastTargets) {
-    const floorTex = tiledTex(GalleryArt.makeFloorCanvas(room), room.sizeX / 4, room.sizeZ / 4);
-    const wallTexNS = tiledTex(GalleryArt.makeWallCanvas(room), room.sizeX / 4, WALL_H / 4);
-    const wallTexEW = tiledTex(GalleryArt.makeWallCanvas(room), room.sizeZ / 4, WALL_H / 4);
-
-    // Floor
-    const floorGeom = room.shape === "circle"
-      ? new THREE.CircleGeometry(Math.min(room.sizeX, room.sizeZ) / 2, 72)
-      : new THREE.PlaneGeometry(room.sizeX, room.sizeZ);
-    const floor = new THREE.Mesh(
-      floorGeom,
-      new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.9 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.set(room.center[0], 0, room.center[1]);
-    scene.add(floor);
-
-    // Ceiling (subtle warm wash)
-    const ceilGeom = room.shape === "circle"
-      ? new THREE.CircleGeometry(Math.min(room.sizeX, room.sizeZ) / 2, 72)
-      : new THREE.PlaneGeometry(room.sizeX, room.sizeZ);
-    const ceil = new THREE.Mesh(
-      ceilGeom,
-      new THREE.MeshStandardMaterial({ color: 0xf2ecdc, roughness: 1 })
-    );
-    ceil.rotation.x = Math.PI / 2;
-    ceil.position.set(room.center[0], WALL_H, room.center[1]);
-    scene.add(ceil);
-
-    // Wall material — use two tilings so the texture orientation looks right
-    // on both axes of a non-square room.
-    const wallMatNS = new THREE.MeshStandardMaterial({ map: wallTexNS, roughness: 0.95 });
-    const wallMatEW = new THREE.MeshStandardMaterial({ map: wallTexEW, roughness: 0.95 });
-    if (room.shape === "circle") {
-      const radius = Math.min(room.sizeX, room.sizeZ) / 2;
-      const hole = DOOR_W / radius;
-      const doorRanges = {
-        N: [Math.PI - hole / 2, Math.PI + hole / 2],
-        E: [-Math.PI / 2 - hole / 2, -Math.PI / 2 + hole / 2],
-        S: [-hole / 2, hole / 2],
-        W: [Math.PI / 2 - hole / 2, Math.PI / 2 + hole / 2],
-      };
-      const segments = 180;
-      const inDoor = (a) => room.doors.some((d) => {
-        const [a0, a1] = doorRanges[d];
-        return a >= a0 && a <= a1;
-      });
-      for (let i = 0; i < segments; i++) {
-        const a0 = -Math.PI + (i / segments) * (Math.PI * 2);
-        const a1 = -Math.PI + ((i + 1) / segments) * (Math.PI * 2);
-        const am = (a0 + a1) / 2;
-        if (inDoor(am)) continue;
-        const from = [room.center[0] - Math.sin(a0) * radius, room.center[1] - Math.cos(a0) * radius];
-        const to = [room.center[0] - Math.sin(a1) * radius, room.center[1] - Math.cos(a1) * radius];
-        buildWall(scene, from, to, wallMatNS);
-      }
-      for (const side of room.doors) buildLintel(scene, room, side, wallMatNS);
-      for (const side of room.doors) buildDoorwaySign(scene, room, side);
-      return;
-    }
-    for (const side of ["N", "S", "E", "W"]) {
-      const mat = (side === "N" || side === "S") ? wallMatNS : wallMatEW;
-      const segs = wallSegments(room, side);
-      for (const s of segs) buildWall(scene, s.from, s.to, mat);
-      buildLintel(scene, room, side, mat);
-      buildDoorwaySign(scene, room, side);
-    }
-
-    // Per-room ambient point light — strong enough to read across the room
-    const ptColor = new THREE.Color(room.wall).lerp(new THREE.Color(0xfff2cc), 0.45);
-    const radius = Math.max(room.sizeX, room.sizeZ) * 0.65;
-    const pt = new THREE.PointLight(ptColor.getHex(), 1.2, radius, 1.6);
-    pt.position.set(room.center[0], WALL_H - 0.5, room.center[1]);
-    scene.add(pt);
-
-    // A second light in larger rooms to keep far corners legible
-    if (Math.max(room.sizeX, room.sizeZ) > 24) {
-      const aux = new THREE.PointLight(ptColor.getHex(), 0.7, radius, 1.8);
-      const ox = room.sizeX > room.sizeZ ? room.sizeX * 0.25 : 0;
-      const oz = room.sizeZ > room.sizeX ? room.sizeZ * 0.25 : 0;
-      aux.position.set(room.center[0] + ox, WALL_H - 0.5, room.center[1] + oz);
-      scene.add(aux);
-
-      const aux2 = new THREE.PointLight(ptColor.getHex(), 0.7, radius, 1.8);
-      aux2.position.set(room.center[0] - ox, WALL_H - 0.5, room.center[1] - oz);
-      scene.add(aux2);
-    }
-  }
-
-  function buildAtriumPedestals(scene) {
+  // ── central pedestal ─────────────────────────────────────────────────────
+  function buildCenterPedestal(scene) {
     const plinth = new THREE.Mesh(
       new THREE.CylinderGeometry(1.3, 1.45, 0.9, 32),
       new THREE.MeshStandardMaterial({ color: 0x2a241a, roughness: 0.6 })
     );
     plinth.position.set(0, 0.45, 0);
     scene.add(plinth);
-
     const cap = new THREE.Mesh(
       new THREE.CylinderGeometry(1.4, 1.3, 0.06, 32),
       new THREE.MeshStandardMaterial({ color: 0x8a6a2c, roughness: 0.4, metalness: 0.4 })
@@ -340,7 +168,6 @@
     cap.position.set(0, 0.93, 0);
     scene.add(cap);
 
-    // Floating title
     const c = document.createElement("canvas");
     c.width = 1280; c.height = 320;
     const ctx = c.getContext("2d");
@@ -365,99 +192,162 @@
       titleGroup.add(plane);
     }
     scene.add(titleGroup);
-
     scene.userData.titleGroup = titleGroup;
   }
 
-  function buildRoomFurniture(scene, room) {
-    if (room === ROOMS.atrium) return;
-    const [cx, cz] = room.center;
-    const benchMat = new THREE.MeshStandardMaterial({ color: 0x2a241a, roughness: 0.8 });
-    // A pair of benches in larger rooms; a single bench in smaller ones
-    const big = Math.max(room.sizeX, room.sizeZ) > 24;
-    if (big) {
-      const benchA = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 0.55), benchMat);
-      benchA.position.set(cx + 3, 0.25, cz);
-      scene.add(benchA);
-      const benchB = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 0.55), benchMat);
-      benchB.position.set(cx - 3, 0.25, cz);
-      scene.add(benchB);
-    } else {
-      const bench = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 0.55), benchMat);
-      bench.position.set(cx, 0.25, cz);
-      scene.add(bench);
+  // ── lighting for the cathedral ───────────────────────────────────────────
+  function buildLighting(scene) {
+    // Sunlight through the dome
+    const sun = new THREE.DirectionalLight(0xfff5e0, 0.6);
+    sun.position.set(0, 30, 0);
+    scene.add(sun);
+
+    // Central dome glow
+    const dome = new THREE.PointLight(0xfff2cc, 1.2, 60, 1.2);
+    dome.position.set(0, WALL_H + 4, 0);
+    scene.add(dome);
+
+    // Wing lights
+    for (const key of Object.keys(ROOMS)) {
+      if (key === "atrium") continue;
+      const room = ROOMS[key];
+      const a = (room.angle || 0) * Math.PI / 180;
+      const dist = 28;
+      const lx = dist * Math.cos(a);
+      const lz = -dist * Math.sin(a);
+      const ptColor = new THREE.Color(room.wall).lerp(new THREE.Color(0xfff2cc), 0.45);
+      const radius = Math.max(room.sizeX, room.sizeZ) * 0.65;
+      const pt = new THREE.PointLight(ptColor.getHex(), 1.0, radius, 1.6);
+      pt.position.set(lx, WALL_H - 0.5, lz);
+      scene.add(pt);
+
+      if (Math.max(room.sizeX, room.sizeZ) > 20) {
+        const farDist = 38;
+        const pt2 = new THREE.PointLight(ptColor.getHex(), 0.7, radius, 1.8);
+        pt2.position.set(farDist * Math.cos(a), WALL_H - 0.5, -farDist * Math.sin(a));
+        scene.add(pt2);
+      }
     }
   }
 
-  // Walkable boxes — player is allowed in any of these AABBs.
+  // ── fallback floors (if GLB fails to load) ──────────────────────────────
+  function buildFallbackFloors(scene) {
+    for (const key of Object.keys(ROOMS)) {
+      const r = ROOMS[key];
+      const a = (r.angle || 0) * Math.PI / 180;
+      let floorGeom;
+      if (r.shape === "circle") {
+        floorGeom = new THREE.CircleGeometry(Math.min(r.sizeX, r.sizeZ) / 2, 72);
+      } else {
+        floorGeom = new THREE.PlaneGeometry(r.sizeX, r.sizeZ);
+      }
+      const floor = new THREE.Mesh(
+        floorGeom,
+        new THREE.MeshStandardMaterial({ color: r.floor, roughness: 0.9 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.rotation.z = a;
+      floor.position.set(r.center[0], 0, r.center[1]);
+      scene.add(floor);
+    }
+    // Path floors connecting atrium to wings
+    for (const key of Object.keys(ROOMS)) {
+      if (key === "atrium") continue;
+      const room = ROOMS[key];
+      const a = (room.angle || 0) * Math.PI / 180;
+      const pathLen = 20;
+      const pathGeom = new THREE.PlaneGeometry(pathLen, DOOR_W);
+      const path = new THREE.Mesh(
+        pathGeom,
+        new THREE.MeshStandardMaterial({ color: "#c8b890", roughness: 0.85 })
+      );
+      path.rotation.x = -Math.PI / 2;
+      path.rotation.z = a;
+      const mid = 14;
+      path.position.set(mid * Math.cos(a), 0.01, -mid * Math.sin(a));
+      scene.add(path);
+    }
+  }
+
+  // ── load cathedral GLB ───────────────────────────────────────────────────
+  function loadCathedral(scene) {
+    if (typeof THREE.GLTFLoader === "undefined") {
+      console.warn("GLTFLoader not available, using fallback");
+      buildFallbackFloors(scene);
+      return;
+    }
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      "gallery/cathedral.glb",
+      function (gltf) {
+        const model = gltf.scene;
+        // Hide text and built-in art nodes to avoid clashing with our artworks
+        model.traverse(function (child) {
+          if (child.name && (child.name.startsWith("Text.") || child.name.startsWith("Text_"))) {
+            child.visible = false;
+          }
+        });
+        scene.add(model);
+      },
+      undefined,
+      function (err) {
+        console.warn("GLB load failed, using fallback:", err);
+        buildFallbackFloors(scene);
+      }
+    );
+  }
+
+  // ── walkable areas ───────────────────────────────────────────────────────
   function walkableBoxes() {
     const boxes = [];
     const margin = 0.6;
+
     for (const key of Object.keys(ROOMS)) {
       const r = ROOMS[key];
-      const hx = r.sizeX / 2, hz = r.sizeZ / 2;
+      if (r.shape === "circle") {
+        boxes.push({
+          shape: "circle",
+          cx: r.center[0], cz: r.center[1],
+          radius: Math.min(r.sizeX, r.sizeZ) / 2 - margin,
+          room: key
+        });
+      } else {
+        const a = (r.angle || 0) * Math.PI / 180;
+        boxes.push({
+          shape: "rotated-rect",
+          cx: r.center[0], cz: r.center[1],
+          halfX: r.sizeX / 2 - margin,
+          halfZ: r.sizeZ / 2 - margin,
+          cosA: Math.cos(a), sinA: Math.sin(a),
+          room: key
+        });
+      }
+    }
+
+    // Corridors from atrium to each wing (narrow paths at each angle)
+    for (const key of Object.keys(ROOMS)) {
+      if (key === "atrium") continue;
+      const room = ROOMS[key];
+      const a = (room.angle || 0) * Math.PI / 180;
+      const cosA = Math.cos(a), sinA = Math.sin(a);
+
+      // Corridor from atrium edge to wing entrance
+      const innerR = 14;
+      const outerR = room.sizeX > 0 ? Math.sqrt(
+        Math.pow(room.center[0], 2) + Math.pow(room.center[1], 2)
+      ) - room.sizeX / 2 : 18;
+      const midR = (innerR + outerR) / 2;
+      const halfLen = (outerR - innerR) / 2 + margin;
+      const halfWid = DOOR_W / 2 + margin;
       boxes.push({
-        x0: r.center[0] - hx + margin,
-        x1: r.center[0] + hx - margin,
-        z0: r.center[1] - hz + margin,
-        z1: r.center[1] + hz - margin,
-        room: key,
-        shape: r.shape || "rect",
-        radius: Math.min(r.sizeX, r.sizeZ) / 2 - margin,
-        cx: r.center[0],
-        cz: r.center[1],
+        shape: "rotated-rect",
+        cx: midR * cosA, cz: -midR * sinA,
+        halfX: halfLen, halfZ: halfWid,
+        cosA, sinA,
+        room: "corridor-" + key
       });
     }
-    // Corridors connect atrium to each wing through the doorways.
-    const A = ROOMS.atrium;
-    const half = DOOR_W / 2;
-    const corridor = (x0, z0, x1, z1, label) => boxes.push({ x0, x1, z0, z1, room: label });
 
-    // North corridor: from atrium top (cz - halfZ_A) to north bottom (cz_n + halfZ_n)
-    {
-      const ax = A.center[0];
-      const az_top = A.center[1] - A.sizeZ / 2;
-      const N = ROOMS.north;
-      const nz_bot = N.center[1] + N.sizeZ / 2;
-      corridor(ax - half - margin, nz_bot - margin,
-               ax + half + margin, az_top + margin, "door-n");
-    }
-    // South corridor
-    {
-      const ax = A.center[0];
-      const az_bot = A.center[1] + A.sizeZ / 2;
-      const S = ROOMS.south;
-      const sz_top = S.center[1] - S.sizeZ / 2;
-      corridor(ax - half - margin, az_bot - margin,
-               ax + half + margin, sz_top + margin, "door-s");
-    }
-    // East corridor
-    {
-      const az = A.center[1];
-      const ax_right = A.center[0] + A.sizeX / 2;
-      const E = ROOMS.east;
-      const ex_left = E.center[0] - E.sizeX / 2;
-      corridor(ax_right - margin, az - half - margin,
-               ex_left + margin, az + half + margin, "door-e");
-    }
-    // West corridor
-    {
-      const az = A.center[1];
-      const ax_left = A.center[0] - A.sizeX / 2;
-      const W = ROOMS.west;
-      const wx_right = W.center[0] + W.sizeX / 2;
-      corridor(wx_right - margin, az - half - margin,
-               ax_left + margin, az + half + margin, "door-w");
-    }
-    // Deep map connectors to smaller themed rooms.
-    corridor(-2.6, -38.6, 2.6, -31.4, "door-north-research");
-    corridor(-2.6, -48.6, 2.6, -37.4, "door-north-research-2");
-    corridor(5.4, -45.4, 19.4, -40.6, "door-cognition-annex");
-    corridor(31.4, -2.6, 48.6, 2.6, "door-language-lab");
-    corridor(37.4, 5.4, 48.6, 19.4, "door-transfer-room");
-    corridor(-48.6, -2.6, -31.4, 2.6, "door-social-theory");
-    corridor(-48.6, -19.4, -37.4, -5.4, "door-autonomy-hub");
-    corridor(-2.6, 31.4, 2.6, 48.6, "door-assessment");
     return boxes;
   }
 
@@ -465,7 +355,14 @@
     for (const b of boxes) {
       if (b.shape === "circle") {
         if ((x - b.cx) ** 2 + (z - b.cz) ** 2 <= b.radius ** 2) return b.room;
-      } else if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) return b.room;
+      } else if (b.shape === "rotated-rect") {
+        const dx = x - b.cx, dz = z - b.cz;
+        const localX = dx * b.cosA - dz * b.sinA;
+        const localZ = dx * b.sinA + dz * b.cosA;
+        if (Math.abs(localX) <= b.halfX && Math.abs(localZ) <= b.halfZ) return b.room;
+      } else {
+        if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) return b.room;
+      }
     }
     return null;
   }
@@ -474,21 +371,19 @@
     return currentRoom(boxes, x, z) !== null;
   }
 
+  // ── main entry ───────────────────────────────────────────────────────────
   function buildWorld(scene) {
     const raycastTargets = [];
 
-    for (const key of Object.keys(ROOMS)) {
-      buildRoom(scene, ROOMS[key], raycastTargets);
-      buildRoomFurniture(scene, ROOMS[key]);
-    }
+    loadCathedral(scene);
+    buildLighting(scene);
+    buildCenterPedestal(scene);
+    buildAtriumArrows(scene);
+    buildWingEntranceSigns(scene);
 
     for (const t of THEORIES) {
       buildArtwork(scene, t, ROOMS[t.room], raycastTargets);
     }
-
-    buildAtriumPedestals(scene);
-    buildAtriumArrows(scene);
-    buildWingReturnSigns(scene);
 
     return {
       raycastTargets,

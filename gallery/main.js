@@ -5,10 +5,10 @@
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0e1418);
-  scene.fog = new THREE.Fog(0x0e1418, 22, 65);
+  scene.fog = new THREE.Fog(0x0e1418, 30, 90);
 
   const camera = new THREE.PerspectiveCamera(
-    72, window.innerWidth / window.innerHeight, 0.1, 240
+    72, window.innerWidth / window.innerHeight, 0.1, 300
   );
   camera.position.set(0, 1.65, 6);
 
@@ -33,9 +33,9 @@
   }
   for (const t of [0, 50, 200, 1000]) setTimeout(resizeRenderer, t);
 
-  // Lights — cool sky tint to match the light-blue walls, plus a warm fill
-  scene.add(new THREE.AmbientLight(0xe8f2fa, 0.36));
-  const hemi = new THREE.HemisphereLight(0xdfeefb, 0x2f3a25, 0.38);
+  // Lights — warm stone cathedral tones
+  scene.add(new THREE.AmbientLight(0xf5ece0, 0.4));
+  const hemi = new THREE.HemisphereLight(0xfff8e8, 0x2f3a25, 0.35);
   scene.add(hemi);
 
   // World
@@ -47,7 +47,6 @@
   // ── input ────────────────────────────────────────────────────────────────
   const keys = Object.create(null);
   window.addEventListener("keydown", (e) => {
-    // If a notes textarea is focused, only Escape should be intercepted.
     const focusingNotes = document.activeElement && document.activeElement.id === "panelNotes";
     if (focusingNotes) {
       if (e.code === "Escape") {
@@ -192,7 +191,6 @@
   let currentTheoryId = null;
   let notesSaveTimer = null;
 
-  // localStorage helpers for per-theory notes
   function notesKey(id) { return `learning-gallery:notes:${id}`; }
   function loadNote(id) {
     try { return localStorage.getItem(notesKey(id)) || ""; }
@@ -209,7 +207,6 @@
     return n && n.trim().length > 0;
   }
 
-  // Debounced auto-save while typing
   panelNotes.addEventListener("input", () => {
     if (!currentTheoryId) return;
     notesStatus.textContent = "Saving…";
@@ -273,7 +270,6 @@
     c.style.borderRadius = "4px";
     panelArt.appendChild(c);
 
-    // Load existing note
     panelNotes.value = loadNote(theory.id);
     notesStatus.textContent = panelNotes.value.trim() ? "Saved locally" : "";
 
@@ -281,14 +277,12 @@
     if (controls.isLocked) controls.unlock();
     hint.style.display = "none";
 
-    // scroll panel back to top
     requestAnimationFrame(() => {
       const card = panel.querySelector(".panelCard");
       if (card) card.scrollTop = 0;
     });
   }
   function closePanel() {
-    // save current note before closing
     if (currentTheoryId) saveNote(currentTheoryId, panelNotes.value);
     panel.classList.remove("open");
     currentTheoryId = null;
@@ -370,28 +364,35 @@
     notebook.classList.remove("open");
   }
 
-  // ── minimap ─────────────────────────────────────────────────────────────
+  // ── minimap (radial 8-wing layout) ─────────────────────────────────────
   const map = document.getElementById("map");
   const mapSvg = document.getElementById("mapSvg");
   const mapRoomLabel = document.getElementById("mapRoomLabel");
 
   function mapBounds() {
-    // compute bounding box of all rooms to scale the map nicely
     let xmin = Infinity, xmax = -Infinity, zmin = Infinity, zmax = -Infinity;
     for (const k of Object.keys(ROOMS)) {
       const r = ROOMS[k];
-      xmin = Math.min(xmin, r.center[0] - r.sizeX / 2);
-      xmax = Math.max(xmax, r.center[0] + r.sizeX / 2);
-      zmin = Math.min(zmin, r.center[1] - r.sizeZ / 2);
-      zmax = Math.max(zmax, r.center[1] + r.sizeZ / 2);
+      const a = (r.angle || 0) * Math.PI / 180;
+      const cosA = Math.cos(a), sinA = Math.sin(a);
+      const hx = r.sizeX / 2, hz = r.sizeZ / 2;
+      const corners = [[-hx,-hz],[hx,-hz],[hx,hz],[-hx,hz]];
+      for (const [lx, lz] of corners) {
+        const wx = r.center[0] + lx * cosA + lz * sinA;
+        const wz = r.center[1] - lx * sinA + lz * cosA;
+        xmin = Math.min(xmin, wx);
+        xmax = Math.max(xmax, wx);
+        zmin = Math.min(zmin, wz);
+        zmax = Math.max(zmax, wz);
+      }
     }
     return { xmin, xmax, zmin, zmax };
   }
 
-  let MAP_W = 240, MAP_H = 240, MAP_SCALE = 1, MAP_OX = 0, MAP_OZ = 0;
+  let MAP_W = 260, MAP_H = 260, MAP_SCALE = 1, MAP_OX = 0, MAP_OZ = 0;
   function computeMapScale() {
     const b = mapBounds();
-    const padding = 12;
+    const padding = 14;
     const sx = (MAP_W - padding * 2) / (b.xmax - b.xmin);
     const sz = (MAP_H - padding * 2) / (b.zmax - b.zmin);
     MAP_SCALE = Math.min(sx, sz);
@@ -401,6 +402,18 @@
   function mx(x) { return x * MAP_SCALE + MAP_OX; }
   function mz(z) { return z * MAP_SCALE + MAP_OZ; }
 
+  const WING_SHORT_NAMES = {
+    atrium: "Dome",
+    design: "Design",
+    cog: "Cognitive",
+    mem: "Memory",
+    mot: "Motivation",
+    soc: "Social",
+    adu: "Adult",
+    eap: "EAP",
+    tax: "Taxonomy",
+  };
+
   function buildMap() {
     computeMapScale();
     const ns = "http://www.w3.org/2000/svg";
@@ -409,61 +422,66 @@
     mapSvg.setAttribute("height", MAP_H);
 
     const labels = [];
+
     for (const key of Object.keys(ROOMS)) {
       const r = ROOMS[key];
-      const rect = document.createElementNS(ns, "rect");
-      rect.setAttribute("x", mx(r.center[0] - r.sizeX / 2));
-      rect.setAttribute("y", mz(r.center[1] - r.sizeZ / 2));
-      rect.setAttribute("width", r.sizeX * MAP_SCALE);
-      rect.setAttribute("height", r.sizeZ * MAP_SCALE);
-      rect.setAttribute("fill", r.accent);
-      rect.setAttribute("fill-opacity", "0.35");
-      rect.setAttribute("stroke", r.accent);
-      rect.setAttribute("stroke-width", "1.5");
-      rect.dataset.room = key;
-      mapSvg.appendChild(rect);
+      const a = (r.angle || 0) * Math.PI / 180;
+
+      if (r.shape === "circle") {
+        const circ = document.createElementNS(ns, "circle");
+        circ.setAttribute("cx", mx(r.center[0]));
+        circ.setAttribute("cy", mz(r.center[1]));
+        circ.setAttribute("r", Math.min(r.sizeX, r.sizeZ) / 2 * MAP_SCALE);
+        circ.setAttribute("fill", r.accent);
+        circ.setAttribute("fill-opacity", "0.35");
+        circ.setAttribute("stroke", r.accent);
+        circ.setAttribute("stroke-width", "1.5");
+        circ.dataset.room = key;
+        mapSvg.appendChild(circ);
+      } else {
+        const cosA = Math.cos(a), sinA = Math.sin(a);
+        const hx = r.sizeX / 2, hz = r.sizeZ / 2;
+        const corners = [[-hx,-hz],[hx,-hz],[hx,hz],[-hx,hz]];
+        const pts = corners.map(([lx, lz]) => {
+          const wx = r.center[0] + lx * cosA + lz * sinA;
+          const wz = r.center[1] - lx * sinA + lz * cosA;
+          return `${mx(wx)},${mz(wz)}`;
+        }).join(" ");
+        const poly = document.createElementNS(ns, "polygon");
+        poly.setAttribute("points", pts);
+        poly.setAttribute("fill", r.accent);
+        poly.setAttribute("fill-opacity", "0.35");
+        poly.setAttribute("stroke", r.accent);
+        poly.setAttribute("stroke-width", "1.5");
+        poly.dataset.room = key;
+        mapSvg.appendChild(poly);
+      }
+
+      // Corridor line from atrium to wing
+      if (key !== "atrium") {
+        const line = document.createElementNS(ns, "line");
+        line.setAttribute("x1", mx(0));
+        line.setAttribute("y1", mz(0));
+        line.setAttribute("x2", mx(r.center[0]));
+        line.setAttribute("y2", mz(r.center[1]));
+        line.setAttribute("stroke", "#3a342a");
+        line.setAttribute("stroke-width", DOOR_W * MAP_SCALE * 0.6);
+        line.setAttribute("stroke-linecap", "round");
+        mapSvg.appendChild(line);
+      }
 
       const lab = document.createElementNS(ns, "text");
       lab.setAttribute("x", mx(r.center[0]));
-      lab.setAttribute("y", mz(r.center[1]) + 4);
+      lab.setAttribute("y", mz(r.center[1]) + 3);
       lab.setAttribute("text-anchor", "middle");
-      lab.setAttribute("font-size", "10");
+      lab.setAttribute("font-size", "8");
       lab.setAttribute("font-family", "Georgia, serif");
       lab.setAttribute("fill", "#f6efd9");
       lab.setAttribute("stroke", "rgba(20,16,10,0.7)");
       lab.setAttribute("stroke-width", "2");
       lab.setAttribute("paint-order", "stroke");
-      lab.textContent = key === "atrium" ? "Atrium" :
-                        key === "north" ? "Cognitive" :
-                        key === "east" ? "Memory" :
-                        key === "south" ? "Motivation" :
-                        "Social & EAP";
+      lab.textContent = WING_SHORT_NAMES[key] || key;
       labels.push(lab);
-    }
-
-    // Corridors as thin strips between adjacent rooms
-    const A = ROOMS.atrium;
-    const half = DOOR_W / 2;
-    const corridors = [
-      // N corridor between atrium top and north bottom
-      { x: A.center[0] - half, z: ROOMS.north.center[1] + ROOMS.north.sizeZ / 2,
-        w: DOOR_W, h: (A.center[1] - A.sizeZ/2) - (ROOMS.north.center[1] + ROOMS.north.sizeZ/2) },
-      { x: A.center[0] - half, z: A.center[1] + A.sizeZ / 2,
-        w: DOOR_W, h: (ROOMS.south.center[1] - ROOMS.south.sizeZ/2) - (A.center[1] + A.sizeZ/2) },
-      { x: A.center[0] + A.sizeX / 2, z: A.center[1] - half,
-        w: (ROOMS.east.center[0] - ROOMS.east.sizeX/2) - (A.center[0] + A.sizeX/2), h: DOOR_W },
-      { x: ROOMS.west.center[0] + ROOMS.west.sizeX/2, z: A.center[1] - half,
-        w: (A.center[0] - A.sizeX/2) - (ROOMS.west.center[0] + ROOMS.west.sizeX/2), h: DOOR_W },
-    ];
-    for (const c of corridors) {
-      if (c.w <= 0 || c.h <= 0) continue;
-      const rect = document.createElementNS(ns, "rect");
-      rect.setAttribute("x", mx(c.x));
-      rect.setAttribute("y", mz(c.z));
-      rect.setAttribute("width", c.w * MAP_SCALE);
-      rect.setAttribute("height", c.h * MAP_SCALE);
-      rect.setAttribute("fill", "#3a342a");
-      mapSvg.appendChild(rect);
     }
 
     for (const lab of labels) mapSvg.appendChild(lab);
@@ -500,19 +518,20 @@
     f.setAttribute("y2", ly);
 
     const cur = world.currentRoom(world.boxes, obj.position.x, obj.position.z);
-    const roomKey = cur && ROOMS[cur] ? cur : (cur || "").startsWith("door") ? null : cur;
+    const roomKey = cur && ROOMS[cur] ? cur : null;
+    const isCorridor = cur && cur.startsWith("corridor-");
     const r = roomKey && ROOMS[roomKey];
     if (r) mapRoomLabel.textContent = r.name.toUpperCase();
-    else if (cur) mapRoomLabel.textContent = "↳ corridor";
+    else if (isCorridor) mapRoomLabel.textContent = "↳ path";
     else mapRoomLabel.textContent = "—";
 
-    [...mapSvg.querySelectorAll("rect[data-room]")].forEach((rect) => {
-      if (rect.dataset.room === roomKey) {
-        rect.setAttribute("fill-opacity", "0.78");
-        rect.setAttribute("stroke-width", "2.4");
+    [...mapSvg.querySelectorAll("[data-room]")].forEach((el) => {
+      if (el.dataset.room === roomKey) {
+        el.setAttribute("fill-opacity", "0.78");
+        el.setAttribute("stroke-width", "2.4");
       } else {
-        rect.setAttribute("fill-opacity", "0.35");
-        rect.setAttribute("stroke-width", "1.2");
+        el.setAttribute("fill-opacity", "0.35");
+        el.setAttribute("stroke-width", "1.2");
       }
     });
   }
