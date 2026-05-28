@@ -4,11 +4,11 @@
   const { WALL_H, DOOR_W } = window.GalleryWorld;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0e1418);
-  scene.fog = new THREE.Fog(0x0e1418, 30, 90);
+  scene.background = new THREE.Color(0x1a1d22);
+  scene.fog = new THREE.Fog(0x1a1d22, 34, 80);
 
   const camera = new THREE.PerspectiveCamera(
-    72, window.innerWidth / window.innerHeight, 0.1, 300
+    72, window.innerWidth / window.innerHeight, 0.1, 200
   );
   camera.position.set(0, 1.65, 6);
 
@@ -33,10 +33,13 @@
   }
   for (const t of [0, 50, 200, 1000]) setTimeout(resizeRenderer, t);
 
-  // Lights — warm stone cathedral tones
-  scene.add(new THREE.AmbientLight(0xf5ece0, 0.4));
-  const hemi = new THREE.HemisphereLight(0xfff8e8, 0x2f3a25, 0.35);
+  // Lights — bright, neutral gallery wash for clean contrast
+  scene.add(new THREE.AmbientLight(0xffffff, 0.62));
+  const hemi = new THREE.HemisphereLight(0xfff8ee, 0x6b6456, 0.5);
   scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff4e2, 0.5);
+  sun.position.set(8, 30, 6);
+  scene.add(sun);
 
   // World
   const world = window.GalleryWorld.buildWorld(scene);
@@ -85,7 +88,7 @@
   function tryInteract(useMousePos = false) {
     raycaster.setFromCamera(useMousePos ? mouseNDC : screenCenter, camera);
     const hits = raycaster.intersectObjects(world.raycastTargets, false);
-    if (hits.length && hits[0].distance < 9) {
+    if (hits.length && hits[0].distance < 11) {
       const theory = hits[0].object.userData.theory;
       if (theory) openPanel(theory);
     }
@@ -108,15 +111,28 @@
 
   // ── crosshair hover ─────────────────────────────────────────────────────
   let hovered = null;
+  let litFrame = null;
   const crosshair = document.getElementById("crosshair");
   const reticleLabel = document.getElementById("reticleLabel");
+  function clearFrameHighlight() {
+    if (litFrame) {
+      litFrame.emissive.setHex(0x000000);
+      litFrame = null;
+    }
+  }
   function updateHover() {
     raycaster.setFromCamera(screenCenter, camera);
     const hits = raycaster.intersectObjects(world.raycastTargets, false);
-    const hit = hits.find((h) => h.distance < 9);
+    const hit = hits.find((h) => h.distance < 11);
     if (hit) {
-      if (hovered !== hit.object) { hovered = hit.object; }
+      hovered = hit.object;
       const t = hit.object.userData.theory;
+      const frameMat = hit.object.userData.frameMat;
+      if (frameMat && litFrame !== frameMat) {
+        clearFrameHighlight();
+        frameMat.emissive.setHex(0x5a4a22);
+        litFrame = frameMat;
+      }
       if (t) {
         reticleLabel.textContent = t.title + " — click to read";
         reticleLabel.style.display = "block";
@@ -124,6 +140,7 @@
       crosshair.classList.add("active");
     } else {
       hovered = null;
+      clearFrameHighlight();
       reticleLabel.style.display = "none";
       crosshair.classList.remove("active");
     }
