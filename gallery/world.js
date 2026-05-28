@@ -77,10 +77,10 @@
     g.add(lab);
     raycastTargets.push(lab);
 
-    // generous invisible click target
+    // generous invisible click target (opacity 0 so it still raycasts)
     const hit = new THREE.Mesh(
       new THREE.BoxGeometry(ART_W + 1.0, ART_H + 1.6, 0.5),
-      new THREE.MeshBasicMaterial({ visible: false })
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
     );
     hit.position.set(0, -0.25, FRAME_DEPTH / 2 + 0.25);
     hit.userData.theory = theory;
