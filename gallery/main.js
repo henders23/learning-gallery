@@ -75,25 +75,27 @@
   const startBtn = document.getElementById("startBtn");
   const introClose = document.getElementById("introClose");
   let started = false;
-  function guideOpen() { return intro.style.display !== "none"; }
+  function guideOpen() { return !intro.classList.contains("hidden"); }
+  function setGuideKeyboard(on) {
+    if (window.Guidebook) window.Guidebook.setKeyboard(on);
+  }
   function openGuide() {
-    intro.style.display = "flex";
-    if (started) {
-      intro.classList.add("reopened");
-      startBtn.textContent = "Resume exploring";
-    }
+    intro.classList.remove("hidden");
+    if (started) startBtn.textContent = "Resume exploring →";
+    setGuideKeyboard(true);
     hint.style.display = "none";
     if (controls.isLocked) controls.unlock();
   }
   function closeGuide() {
-    intro.style.display = "none";
+    intro.classList.add("hidden");
+    setGuideKeyboard(false);
     started = true;
     controls.lock();
   }
   startBtn.addEventListener("click", closeGuide);
   introClose.addEventListener("click", closeGuide);
 
-  controls.addEventListener("lock", () => { intro.style.display = "none"; hint.style.display = "none"; });
+  controls.addEventListener("lock", () => { hint.style.display = "none"; });
   controls.addEventListener("unlock", () => {
     if (!panel.classList.contains("open") && !notebook.classList.contains("open") && !guideOpen()) {
       setTimeout(() => controls.lock(), 0);
@@ -582,29 +584,6 @@
   function toggleMap() {
     map.classList.toggle("collapsed");
   }
-
-  // ── guidebook content (built once from data) ─────────────────────────────
-  function buildGuide() {
-    const container = document.getElementById("guideRooms");
-    if (!container) return;
-    const grouped = {};
-    for (const t of THEORIES) (grouped[t.room] ||= []).push(t);
-    container.innerHTML = "";
-    for (const key of Object.keys(ROOMS)) {
-      const r = ROOMS[key];
-      const list = grouped[key] || [];
-      const titles = list.map((t) => t.title).join(" · ");
-      const div = document.createElement("div");
-      div.className = "guideRoom";
-      div.style.borderLeftColor = r.accent;
-      div.innerHTML =
-        `<p class="gr-name" style="color:${r.accent}">${r.name}</p>` +
-        `<p class="gr-look">${r.guide || r.subtitle || ""}</p>` +
-        `<p class="gr-list"><strong>${list.length}</strong> ${list.length === 1 ? "exhibit" : "exhibits"}: ${titles}</p>`;
-      container.appendChild(div);
-    }
-  }
-  buildGuide();
 
   // ── animation loop ──────────────────────────────────────────────────────
   function tick() {
