@@ -12,9 +12,9 @@
   const ROT_R = 16;            // rotunda radius
   const CORRIDOR_LEN = 3;      // gap between rotunda wall and wing inner edge
 
-  const ART_W = 3.0, ART_H = 2.1, ART_Y = 1.95;
+  const ART_W = 2.6, ART_H = 1.85, ART_Y = 1.9;
   const FRAME_EXT = 0.24, FRAME_DEPTH = 0.16;
-  const LABEL_W = 2.7, LABEL_H = 0.64;
+  const LABEL_W = 2.5, LABEL_H = 0.6;
 
   const WING_KEYS = ["design", "cog", "mem", "mot", "soc", "adu", "eap", "tax"];
 
@@ -161,11 +161,26 @@
     addBox(group, room.sizeX, cc, WALL_T + 0.04, 0, h - cc / 2, hz, corniceMat);
     addBox(group, WALL_T + 0.04, cc, room.sizeZ, hx, h - cc / 2, 0, corniceMat);
 
-    // distribute artworks along N, outer, S walls
+    // room "guidebook page" panel, centred on the outer wall facing the door —
+    // the first thing seen on entering, to aid navigation
+    const SUM_W = 3.7, SUM_H = SUM_W * (820 / 1100);
+    const sumGroup = new THREE.Group();
+    sumGroup.position.set(hx - WALL_T / 2 - 0.05, 1.0 + SUM_H / 2, 0);
+    sumGroup.rotation.y = -Math.PI / 2;
+    group.add(sumGroup);
+    addBox(sumGroup, SUM_W + 0.34, SUM_H + 0.34, 0.14, 0, 0, 0,
+      new THREE.MeshStandardMaterial({ color: 0x241c14, roughness: 0.55 }));
+    const sumPanel = new THREE.Mesh(
+      new THREE.PlaneGeometry(SUM_W, SUM_H),
+      new THREE.MeshBasicMaterial({ map: texFromCanvas(GalleryArt.makeRoomSummaryCanvas(room, theories)) })
+    );
+    sumPanel.position.z = 0.08;
+    sumGroup.add(sumPanel);
+
+    // distribute artworks evenly along the two long side walls
     const m = 1.3, inset = WALL_T / 2 + 0.06;
     const runs = [
       { len: room.sizeX - 2 * m, at: (s) => ({ x: -hx + m + s, z: -hz + inset, ry: 0 }) },
-      { len: room.sizeZ - 2 * m, at: (s) => ({ x: hx - inset, z: -hz + m + s, ry: -Math.PI / 2 }) },
       { len: room.sizeX - 2 * m, at: (s) => ({ x: hx - m - s, z: hz - inset, ry: Math.PI }) },
     ];
     const slots = distribute(runs, theories.length);
@@ -350,22 +365,23 @@
     scene.add(cap);
 
     const c = document.createElement("canvas");
-    c.width = 1280; c.height = 320;
+    c.width = 1024; c.height = 384;
     const ctx = c.getContext("2d");
-    ctx.clearRect(0, 0, 1280, 320);
-    ctx.fillStyle = "#1e1a13";
-    ctx.font = "600 110px Georgia, serif";
+    ctx.clearRect(0, 0, 1024, 384);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("THE  LEARNING  GALLERY", 640, 130);
+    ctx.fillStyle = "#1e1a13";
+    ctx.font = "600 92px Georgia, serif";
+    ctx.fillText("THE LEARNING", 512, 120);
+    ctx.fillText("GALLERY", 512, 216);
     ctx.fillStyle = "#7a6a4c";
-    ctx.font = "italic 40px Georgia, serif";
-    ctx.fillText("a walkable atlas of theories of learning", 640, 240);
+    ctx.font = "italic 34px Georgia, serif";
+    ctx.fillText("press  G  for the guidebook", 512, 312);
     const titleMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true });
     const titleGroup = new THREE.Group();
     for (let i = 0; i < 4; i++) {
-      const plane = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 1.13), titleMat);
-      plane.position.set(Math.sin((i * Math.PI) / 2) * 1.35, 1.95, Math.cos((i * Math.PI) / 2) * 1.35);
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.86), titleMat);
+      plane.position.set(Math.sin((i * Math.PI) / 2) * 0.95, 1.62, Math.cos((i * Math.PI) / 2) * 0.95);
       plane.rotation.y = (i * Math.PI) / 2;
       titleGroup.add(plane);
     }

@@ -55,18 +55,34 @@
     "EAP-specific":                [140, 110],
   };
   function paletteFor(theory) {
-    const range = CLUSTER_HUES[theory.cluster] || [200, 220];
+    const range = CLUSTER_HUES[theory.cluster] || [200, 40];
     const rng = mulberry32(hashStr(theory.id + theory.title));
-    const hueA = range[0] + Math.floor(rng() * 10) - 5;
-    const hueB = range[1] + Math.floor(rng() * 10) - 5;
-    const accent = (hueA + 180) % 360;
+    // base hue sits near the cluster family but with wide per-theory jitter,
+    // so neighbouring pieces in the same room still read as different pictures
+    const baseHue = ((range[0] + (rng() - 0.5) * 74) % 360 + 360) % 360;
+    const scheme = rng();
+    const compHue = (baseHue + (scheme < 0.5 ? 28 + rng() * 36 : 150 + rng() * 70)) % 360;
+    const accentHue = ((baseHue + 180 + (rng() - 0.5) * 50) % 360 + 360) % 360;
+
+    // ground tone varies: light, mid-tint, or dark — biggest driver of variety
+    let bg, onDark = false;
+    const g = rng();
+    if (g < 0.46) {
+      bg = `hsl(${baseHue}, ${22 + rng() * 24}%, ${80 + rng() * 12}%)`;
+    } else if (g < 0.78) {
+      bg = `hsl(${baseHue}, ${30 + rng() * 26}%, ${52 + rng() * 16}%)`;
+    } else {
+      bg = `hsl(${baseHue}, ${28 + rng() * 22}%, ${15 + rng() * 12}%)`;
+      onDark = true;
+    }
+    const sat = 46 + rng() * 30;
     return {
-      rng,
-      bg:    `hsl(${hueA}, ${20 + Math.floor(rng()*15)}%, ${88 - Math.floor(rng()*10)}%)`,
-      dark:  `hsl(${hueA}, ${30 + Math.floor(rng()*15)}%, ${18 + Math.floor(rng()*10)}%)`,
-      mid:   `hsl(${hueB}, ${40 + Math.floor(rng()*20)}%, ${42 + Math.floor(rng()*10)}%)`,
-      light: `hsl(${hueA}, ${25 + Math.floor(rng()*15)}%, ${72 + Math.floor(rng()*8)}%)`,
-      pop:   `hsl(${accent}, 55%, ${48 + Math.floor(rng()*10)}%)`,
+      rng, onDark,
+      bg,
+      dark:  `hsl(${baseHue}, ${40 + rng() * 22}%, ${15 + rng() * 10}%)`,
+      mid:   `hsl(${compHue}, ${sat}%, ${42 + rng() * 16}%)`,
+      light: `hsl(${baseHue}, ${28 + rng() * 22}%, ${74 + rng() * 12}%)`,
+      pop:   `hsl(${accentHue}, ${62 + rng() * 24}%, ${50 + rng() * 12}%)`,
     };
   }
 
@@ -242,6 +258,102 @@
     }
   }
 
+  function styleLandscape(ctx, w, h, p, rng) {
+    // sky gradient
+    const horizon = h * (0.5 + rng() * 0.2);
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    sky.addColorStop(0, p.onDark ? p.dark : p.light);
+    sky.addColorStop(1, p.bg);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, horizon);
+    // sun / moon
+    ctx.fillStyle = p.pop;
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.arc(w * (0.2 + rng() * 0.6), horizon * (0.4 + rng() * 0.3), 36 + rng() * 60, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // layered hills
+    const cols = [p.mid, p.dark, p.pop, p.mid];
+    let base = horizon;
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = cols[i % cols.length];
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.moveTo(0, base);
+      const amp = 30 + rng() * 50;
+      for (let x = 0; x <= w; x += 40) ctx.lineTo(x, base + Math.sin(x * 0.01 + i * 2 + rng()) * amp);
+      ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fill();
+      base += (h - horizon) / 4;
+    }
+    // foreground
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = p.dark;
+    ctx.fillRect(0, h * 0.88, w, h * 0.12);
+  }
+
+  function stylePortrait(ctx, w, h, p, rng) {
+    paper(ctx, w, h, p.bg);
+    // inner panel
+    ctx.fillStyle = p.onDark ? p.light : p.mid;
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(w * 0.16, h * 0.1, w * 0.68, h * 0.8);
+    ctx.globalAlpha = 1;
+    const cx = w * (0.45 + rng() * 0.1);
+    // shoulders
+    ctx.fillStyle = p.dark;
+    ctx.beginPath();
+    ctx.moveTo(cx - w * 0.26, h);
+    ctx.quadraticCurveTo(cx, h * 0.5, cx + w * 0.26, h);
+    ctx.closePath();
+    ctx.fill();
+    // collar accent
+    ctx.fillStyle = p.pop;
+    ctx.beginPath();
+    ctx.moveTo(cx - 22, h * 0.74);
+    ctx.lineTo(cx, h * 0.92);
+    ctx.lineTo(cx + 22, h * 0.74);
+    ctx.fill();
+    // head
+    ctx.fillStyle = p.light;
+    ctx.beginPath();
+    ctx.ellipse(cx, h * (0.4 + rng() * 0.06), 70 + rng() * 24, 92 + rng() * 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // hair / hat
+    ctx.fillStyle = p.mid;
+    ctx.beginPath();
+    ctx.arc(cx, h * 0.32, 80 + rng() * 22, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.fill();
+  }
+
+  function styleBloom(ctx, w, h, p, rng) {
+    paper(ctx, w, h, p.bg);
+    const cx = w * (0.4 + rng() * 0.2), cy = h * (0.4 + rng() * 0.2);
+    const petals = 7 + Math.floor(rng() * 8);
+    const cols = [p.pop, p.mid, p.light];
+    const rOut = 120 + rng() * 110;
+    for (let ring = 0; ring < 2; ring++) {
+      const rr = rOut * (1 - ring * 0.4);
+      for (let i = 0; i < petals; i++) {
+        const a = (i / petals) * Math.PI * 2 + ring * 0.4;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(a);
+        ctx.fillStyle = cols[(i + ring) % cols.length];
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.ellipse(rr * 0.55, 0, rr * 0.42, 20 + rng() * 22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = p.dark;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 26 + rng() * 18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   const STYLES = {
     orbit:    styleOrbit,
     rings:    styleRings,
@@ -251,22 +363,33 @@
     strokes:  styleStrokes,
     layers:   styleLayers,
     glyphs:   styleGlyphs,
+    landscape: styleLandscape,
+    portrait:  stylePortrait,
+    bloom:     styleBloom,
   };
 
   // ── public api ────────────────────────────────────────────────────────────
+  const STYLE_KEYS = Object.keys(STYLES);
   function makeArtworkCanvas(theory) {
     const w = 1024, h = 768;
     const c = document.createElement("canvas");
     c.width = w; c.height = h;
     const ctx = c.getContext("2d");
     const p = paletteFor(theory);
-    const fn = STYLES[theory.style] || styleBauhaus;
-    fn(ctx, w, h, p, p.rng, theory);
-    const grad = ctx.createRadialGradient(w/2, h/2, h*0.3, w/2, h/2, h*0.8);
+    // spread styles deterministically across the whole pool so adjacent
+    // pieces in a room look like different pictures
+    const styleKey = STYLE_KEYS[hashStr(theory.id + "|s") % STYLE_KEYS.length];
+    (STYLES[styleKey] || styleBauhaus)(ctx, w, h, p, p.rng, theory);
+    // vignette
+    const grad = ctx.createRadialGradient(w/2, h/2, h*0.3, w/2, h/2, h*0.85);
     grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, "rgba(0,0,0,0.25)");
+    grad.addColorStop(1, p.onDark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.22)");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
+    // painted inner border
+    ctx.strokeStyle = "rgba(0,0,0,0.18)";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(6, 6, w - 12, h - 12);
     return c;
   }
 
@@ -279,6 +402,109 @@
       ctx.font = `${weight} ${size}px ${family}`;
     }
     return size;
+  }
+
+  // Wrap text into lines that fit maxWidth (ctx.font must be set already).
+  function wrapText(ctx, text, maxWidth) {
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = "";
+    for (const word of words) {
+      const test = line ? line + " " + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // Large room "guidebook page" panel hung on the wall of each wing, listing
+  // the theories in the room and what to pay attention to.
+  function makeRoomSummaryCanvas(room, theories) {
+    const w = 1100, h = 820;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+
+    // paper ground + border
+    ctx.fillStyle = "#f6f0df";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "rgba(40,28,12,0.3)";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(14, 14, w - 28, h - 28);
+
+    // accent header
+    const headH = 132;
+    ctx.fillStyle = room.accent;
+    ctx.fillRect(14, 14, w - 28, headH);
+    ctx.fillStyle = "#fff8e8";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    const padX = 50;
+    const nameSize = fitFontSize(ctx, room.name.toUpperCase(), "600", "Georgia, serif", w - padX * 2, 64, 34);
+    ctx.font = `600 ${nameSize}px Georgia, serif`;
+    ctx.fillText(room.name.toUpperCase(), padX, 14 + headH / 2);
+
+    let y = headH + 56;
+
+    // "what to look for"
+    ctx.fillStyle = room.accent;
+    ctx.font = `600 26px "Helvetica Neue", Arial, sans-serif`;
+    ctx.fillText("WHAT TO LOOK FOR", padX, y);
+    y += 40;
+    ctx.fillStyle = "#33291b";
+    ctx.font = `400 30px Georgia, serif`;
+    const guide = room.guide || room.subtitle || "";
+    for (const ln of wrapText(ctx, guide, w - padX * 2)) {
+      ctx.fillText(ln, padX, y);
+      y += 40;
+    }
+    y += 22;
+
+    // theory list
+    ctx.fillStyle = room.accent;
+    ctx.font = `600 26px "Helvetica Neue", Arial, sans-serif`;
+    ctx.fillText(`IN THIS ROOM — ${theories.length} ${theories.length === 1 ? "EXHIBIT" : "EXHIBITS"}`, padX, y);
+    y += 18;
+    ctx.strokeStyle = "rgba(40,28,12,0.18)";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(w - padX, y); ctx.stroke();
+    y += 30;
+
+    const colW = (w - padX * 2 - 40) / 2;
+    const rowH = 52;
+    const startY = y;
+    const perCol = Math.ceil(theories.length / 2);
+    theories.forEach((t, i) => {
+      const col = Math.floor(i / perCol);
+      const row = i % perCol;
+      const cx = padX + col * (colW + 40);
+      const cy = startY + row * rowH;
+      ctx.fillStyle = room.accent;
+      ctx.beginPath(); ctx.arc(cx + 7, cy + 8, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#262017";
+      const tSize = fitFontSize(ctx, t.title, "600", "Georgia, serif", colW - 28, 27, 18);
+      ctx.font = `600 ${tSize}px Georgia, serif`;
+      ctx.textBaseline = "top";
+      ctx.fillText(t.title, cx + 26, cy);
+      ctx.fillStyle = "#8a7a5c";
+      const aSize = fitFontSize(ctx, t.author, "italic", "Georgia, serif", colW - 28, 18, 13);
+      ctx.font = `italic ${aSize}px Georgia, serif`;
+      ctx.fillText(t.author, cx + 26, cy + tSize + 4);
+      ctx.textBaseline = "middle";
+    });
+
+    // footer hint
+    ctx.fillStyle = "#8a7a5c";
+    ctx.font = `italic 22px Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("Click any framed picture to read it  ·  press G for the full guidebook", w / 2, h - 38);
+
+    return c;
   }
 
   // A small "museum label" plaque drawn below each artwork.
@@ -380,47 +606,45 @@
     return c;
   }
 
-  // Floor texture — green range
+  // Floor texture — light-brown wood planks
   function makeFloorCanvas(room) {
     const w = 512, h = 512;
     const c = document.createElement("canvas");
     c.width = w; c.height = h;
     const ctx = c.getContext("2d");
-    paper(ctx, w, h, room.floor);
-    if (room.floorPattern === "checker") {
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      const s = 64;
-      for (let y = 0; y < h; y += s) {
-        for (let x = 0; x < w; x += s) {
-          if (((x / s) + (y / s)) % 2 === 0) ctx.fillRect(x, y, s, s);
-        }
-      }
-      ctx.strokeStyle = "rgba(0,0,0,0.10)";
+    paper(ctx, w, h, room.floor || "#b98e5e");
+
+    const ph = 64;                     // plank height
+    const planks = h / ph;
+    for (let i = 0; i < planks; i++) {
+      const y = i * ph;
+      // alternate plank tone so the boards read individually
+      const tone = (i % 2 === 0) ? "rgba(255,238,205,0.07)" : "rgba(60,38,16,0.10)";
+      ctx.fillStyle = tone;
+      ctx.fillRect(0, y, w, ph);
+      if (i % 3 === 0) { ctx.fillStyle = "rgba(40,24,8,0.06)"; ctx.fillRect(0, y, w, ph); }
+
+      // wavy grain streaks
+      ctx.strokeStyle = "rgba(58,36,14,0.11)";
       ctx.lineWidth = 1;
-      for (let y = 0; y < h; y += s) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
-      for (let x = 0; x < w; x += s) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-    } else {
-      // plank lines on a green floor
-      ctx.strokeStyle = "rgba(0,0,0,0.16)";
-      ctx.lineWidth = 1;
-      for (let y = 0; y < h; y += 64) {
+      for (let g = 0; g < 5; g++) {
+        const gy = y + 8 + ((g * 13 + i * 7) % (ph - 14));
         ctx.beginPath();
-        ctx.moveTo(0, y); ctx.lineTo(w, y);
+        ctx.moveTo(0, gy);
+        for (let x = 0; x <= w; x += 32) {
+          ctx.lineTo(x, gy + Math.sin(x * 0.05 + i + g) * 1.8);
+        }
         ctx.stroke();
       }
-      ctx.strokeStyle = "rgba(0,0,0,0.10)";
-      for (let y = 0; y < h; y += 64) {
-        const offset = ((y / 64) % 2) * 128;
-        for (let x = offset; x < w; x += 256) {
-          ctx.beginPath();
-          ctx.moveTo(x, y); ctx.lineTo(x, y + 64);
-          ctx.stroke();
-        }
-      }
+
+      // seam between planks
+      ctx.strokeStyle = "rgba(26,15,5,0.4)";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, y + ph); ctx.lineTo(w, y + ph); ctx.stroke();
+
+      // staggered end joint
+      const jointX = (i % 2) * 256 + 128;
+      ctx.beginPath(); ctx.moveTo(jointX, y); ctx.lineTo(jointX, y + ph); ctx.stroke();
     }
     return c;
   }
@@ -464,6 +688,7 @@
     makeArtworkCanvas,
     makeLabelCanvas,
     makeRoomSignCanvas,
+    makeRoomSummaryCanvas,
     makeFloorCanvas,
     makeWallCanvas,
     makeArrowSignCanvas,
