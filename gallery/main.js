@@ -50,10 +50,11 @@
   // ── input ────────────────────────────────────────────────────────────────
   const keys = Object.create(null);
   window.addEventListener("keydown", (e) => {
-    const focusingNotes = document.activeElement && document.activeElement.id === "panelNotes";
-    if (focusingNotes) {
+    const ae = document.activeElement;
+    const typing = ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.isContentEditable);
+    if (typing) {
       if (e.code === "Escape") {
-        document.activeElement.blur();
+        ae.blur();
         e.preventDefault();
       }
       return;
@@ -95,7 +96,8 @@
 
   controls.addEventListener("lock", () => { intro.style.display = "none"; hint.style.display = "none"; });
   controls.addEventListener("unlock", () => {
-    if (!panel.classList.contains("open") && !notebook.classList.contains("open") && !guideOpen()) {
+    if (!panel.classList.contains("open") && !notebook.classList.contains("open") && !guideOpen()
+        && !(window.GalleryExplore && window.GalleryExplore.isOpen())) {
       setTimeout(() => controls.lock(), 0);
     }
   });
@@ -124,7 +126,8 @@
 
   document.addEventListener("click", (e) => {
     if (panel.classList.contains("open") || notebook.classList.contains("open")) return;
-    if (e.target.closest("#map, #hud, #hint, #intro, #panel, #notebook")) return;
+    if (window.GalleryExplore && window.GalleryExplore.isOpen()) return;
+    if (e.target.closest("#map, #hud, #hint, #intro, #panel, #notebook, #lgx-browse, #lgx-recall, #lgx-fab")) return;
     if (controls.isLocked) {
       tryInteract(false);
     } else if (dragDistance <= 8) tryInteract(true);
@@ -173,7 +176,8 @@
   let prev = performance.now();
 
   function overlayOpen() {
-    return panel.classList.contains("open") || notebook.classList.contains("open") || guideOpen();
+    return panel.classList.contains("open") || notebook.classList.contains("open") || guideOpen()
+      || (window.GalleryExplore && window.GalleryExplore.isOpen());
   }
 
   function step(dt) {
@@ -629,5 +633,26 @@
   }
   requestAnimationFrame(tick);
 
-  window.__gallery = { scene, camera, controls, world, openPanel, closePanel, renderer };
+  // Re-grab the pointer after an external overlay (browse / recall) closes,
+  // mirroring the behaviour of the guidebook's "resume exploring".
+  function resumeControls() {
+    if (started &&
+        !panel.classList.contains("open") &&
+        !notebook.classList.contains("open") &&
+        !guideOpen() &&
+        !(window.GalleryExplore && window.GalleryExplore.isOpen())) {
+      controls.lock();
+    }
+  }
+
+  window.__gallery = {
+    scene, camera, controls, world, renderer,
+    openPanel, closePanel,
+    visited, persistVisited,
+    notes: { load: loadNote, save: saveNote, has: hasNote, key: notesKey },
+    VISITED_KEY: "learning-gallery:visited",
+    NOTES_PREFIX: "learning-gallery:notes:",
+    isStarted: () => started,
+    resume: resumeControls,
+  };
 })();
