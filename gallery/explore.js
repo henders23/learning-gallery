@@ -44,20 +44,34 @@
     return a;
   }
 
-  // ── recall stats (persisted, also feed the "mastered" badge in browse) ─────
+  // ── recall stats + spaced-repetition scheduler ────────────────────────────
+  // A lightweight Leitner system: each correct recall promotes a card to a
+  // higher box with a longer interval before it's due again; a miss sends it
+  // back to box 0. "Due" cards resurface in the review queue.
+  const BOX_INTERVAL_MIN = [10, 60 * 24, 3 * 60 * 24, 7 * 60 * 24, 16 * 60 * 24, 35 * 60 * 24];
+  const MAX_BOX = BOX_INTERVAL_MIN.length - 1;
+
   function loadRecall() {
     try { return JSON.parse(localStorage.getItem(RECALL_KEY) || "{}"); }
     catch (e) { return {}; }
   }
   function recordRecall(id, correct) {
     const r = loadRecall();
-    const s = r[id] || { seen: 0, correct: 0 };
+    const s = r[id] || { seen: 0, correct: 0, box: 0 };
     s.seen++;
-    if (correct) s.correct++;
+    if (correct) { s.correct++; s.box = Math.min((s.box || 0) + 1, MAX_BOX); }
+    else { s.box = 0; }
     s.lastResult = correct ? "correct" : "review";
+    s.due = Date.now() + BOX_INTERVAL_MIN[s.box] * 60000;
     s.ts = Date.now();
     r[id] = s;
     try { localStorage.setItem(RECALL_KEY, JSON.stringify(r)); } catch (e) {}
+  }
+  // Exhibits previously tested whose review interval has now elapsed.
+  function dueList() {
+    const r = loadRecall();
+    const now = Date.now();
+    return THEORIES.filter((t) => r[t.id] && typeof r[t.id].due === "number" && r[t.id].due <= now);
   }
 
   function isVisited(id) { return gallery.visited.has(id); }
@@ -207,6 +221,16 @@
       display: inline-flex; align-items: center; gap: 7px;
     }
     #lgx-fab button:hover { border-color: var(--gold); color: #fff; }
+    .lgx-due-badge {
+      display: none; background: var(--gold); color: var(--ink);
+      font: 700 9px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: 0;
+      min-width: 15px; text-align: center; padding: 3px 4px; border-radius: 8px;
+    }
+    .lgx-r-due-note {
+      font: 500 13px/1.5 "Helvetica Neue", Arial, sans-serif !important;
+      color: #2c2519 !important;
+      border-left: 4px solid var(--gold); padding-left: 12px; margin: 4px 0 16px !important;
+    }
     #lgx-fab kbd {
       font-family: ui-monospace, Menlo, Consolas, monospace;
       background: rgba(255,240,200,0.10); border: 1px solid rgba(255,240,200,0.28);
@@ -375,19 +399,30 @@
     state.recall = false;
     recallOverlay.classList.remove("open");
     recallProgress.textContent = "";
+    updateDueBadge();
     resumeScene();
   }
 
   function renderRecallSetup() {
     recallProgress.textContent = "";
     const read = THEORIES.filter((t) => isVisited(t.id));
+    const due = dueList();
     recallInner.innerHTML = "";
     recallInner.appendChild(el("div", { class: "lgx-r-setup" }, [
       el("div", { class: "lgx-r-big", text: "Test yourself" }),
       el("p", { text: "You'll see one framework at a time. Try to recall what it claims and its key points before revealing the answer — then mark whether you got it. Retrieving from memory builds far stronger learning than re-reading." }),
+      due.length
+        ? el("p", { class: "lgx-r-due-note", text: `${due.length} exhibit${due.length === 1 ? "" : "s"} ${due.length === 1 ? "is" : "are"} due for review — spacing them out is when recall sticks.` })
+        : null,
       el("div", { class: "lgx-r-actions" }, [
         el("button", {
           class: "lgx-btn",
+          text: `Due for review (${due.length})`,
+          disabled: due.length === 0,
+          onclick: () => beginRound(due),
+        }),
+        el("button", {
+          class: "lgx-btn ghost",
           text: read.length ? `Exhibits I've read (${read.length})` : "Exhibits I've read (0)",
           disabled: read.length === 0,
           onclick: () => beginRound(read),
@@ -447,6 +482,7 @@
   function rate(correct) {
     const t = deckState.round[deckState.pos];
     recordRecall(t.id, correct);
+    updateDueBadge();
     deckState.reviewed++;
     if (correct) deckState.correct++;
     else deckState.next.push(t);
@@ -614,11 +650,20 @@
   // ──────────────────────────────────────────────────────────────────────────
   //  Launch buttons + keyboard
   // ──────────────────────────────────────────────────────────────────────────
+  const dueBadge = el("span", { class: "lgx-due-badge" });
   const fab = el("div", { id: "lgx-fab" }, [
     el("button", { onclick: openBrowse, title: "Search & browse every exhibit" }, ["Browse", el("kbd", { text: "B" })]),
-    el("button", { onclick: () => openRecall(), title: "Test yourself on the theories" }, ["Recall", el("kbd", { text: "R" })]),
+    el("button", { onclick: () => openRecall(), title: "Test yourself on the theories" }, ["Recall", dueBadge, el("kbd", { text: "R" })]),
   ]);
   document.body.appendChild(fab);
+
+  function updateDueBadge() {
+    const n = dueList().length;
+    dueBadge.textContent = String(n);
+    dueBadge.style.display = n > 0 ? "inline-block" : "none";
+    dueBadge.title = `${n} due for review`;
+  }
+  updateDueBadge();
 
   window.addEventListener("keydown", (e) => {
     const ae = document.activeElement;

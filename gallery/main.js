@@ -78,6 +78,7 @@
   let started = false;
   function guideOpen() { return intro.style.display !== "none"; }
   function openGuide() {
+    buildGuide();
     intro.style.display = "flex";
     if (started) {
       intro.classList.add("reopened");
@@ -227,6 +228,8 @@
   const panelPitfalls = document.getElementById("panelPitfalls");
   const panelAiWrap = document.getElementById("panelAiWrap");
   const panelAi = document.getElementById("panelAi");
+  const panelRelatedWrap = document.getElementById("panelRelatedWrap");
+  const panelRelated = document.getElementById("panelRelated");
   const panelClose = document.getElementById("panelClose");
   const panelArt = document.getElementById("panelArt");
   const panelNotes = document.getElementById("panelNotes");
@@ -286,9 +289,50 @@
     }
   }
 
+  // Surface connections: same-cluster exhibits first, then same-wing to fill out.
+  function relatedTheories(theory, max = 4) {
+    const picked = new Set([theory.id]);
+    const out = [];
+    for (const t of THEORIES) {
+      if (!picked.has(t.id) && t.cluster === theory.cluster) { out.push(t); picked.add(t.id); }
+    }
+    for (const t of THEORIES) {
+      if (out.length >= max) break;
+      if (!picked.has(t.id) && t.room === theory.room) { out.push(t); picked.add(t.id); }
+    }
+    return out.slice(0, max);
+  }
+
+  function renderRelated(theory) {
+    panelRelated.innerHTML = "";
+    const rel = relatedTheories(theory);
+    if (!rel.length) { panelRelatedWrap.style.display = "none"; return; }
+    for (const r of rel) {
+      const b = document.createElement("button");
+      b.className = "relChip";
+      b.textContent = r.title;
+      b.title = r.cluster || "";
+      b.addEventListener("click", () => openPanel(r));
+      panelRelated.appendChild(b);
+    }
+    panelRelatedWrap.style.display = "";
+  }
+
+  // Progress indicator (persistent, on the map).
+  const mapProgressText = document.getElementById("mapProgressText");
+  const mapProgressFill = document.getElementById("mapProgressFill");
+  function updateProgress() {
+    const total = THEORIES.length;
+    let seen = 0;
+    for (const t of THEORIES) if (visited.has(t.id)) seen++;
+    if (mapProgressText) mapProgressText.textContent = `${seen} / ${total} explored`;
+    if (mapProgressFill) mapProgressFill.style.width = total ? (seen / total * 100).toFixed(1) + "%" : "0%";
+  }
+
   function openPanel(theory) {
     visited.add(theory.id);
     persistVisited();
+    updateProgress();
     currentTheoryId = theory.id;
 
     panelTitle.textContent = theory.title;
@@ -308,6 +352,7 @@
     setOptionalSection(panelEvidenceWrap, panelEvidence, theory.evidence);
     setOptionalSection(panelPitfallsWrap, panelPitfalls, theory.pitfalls);
     setOptionalSection(panelAiWrap, panelAi, theory.aiImplications);
+    renderRelated(theory);
 
     panelArt.innerHTML = "";
     const c = GalleryArt.makeArtworkCanvas(theory);
@@ -354,6 +399,7 @@
     } catch (e) {}
   }
   loadVisited();
+  updateProgress();
 
   function renderNotebook() {
     notebookList.innerHTML = "";
@@ -364,9 +410,15 @@
     }
     let total = 0, seen = 0, withNotes = 0;
     for (const room of Object.keys(grouped)) {
+      const items = grouped[room];
+      const groupSeen = items.reduce((n, t) => n + (visited.has(t.id) ? 1 : 0), 0);
       const section = document.createElement("section");
       const h = document.createElement("h3");
-      h.textContent = room;
+      h.appendChild(document.createTextNode(room));
+      const cnt = document.createElement("span");
+      cnt.className = "nbCount";
+      cnt.textContent = `${groupSeen}/${items.length}`;
+      h.appendChild(cnt);
       section.appendChild(h);
       const ul = document.createElement("ul");
       for (const t of grouped[room]) {
@@ -598,13 +650,15 @@
       const r = ROOMS[key];
       const list = grouped[key] || [];
       const titles = list.map((t) => t.title).join(" · ");
+      const groupSeen = list.reduce((n, t) => n + (visited.has(t.id) ? 1 : 0), 0);
+      const readLabel = groupSeen ? `${groupSeen} of ${list.length} read` : `${list.length} ${list.length === 1 ? "exhibit" : "exhibits"}`;
       const div = document.createElement("div");
       div.className = "guideRoom";
       div.style.borderLeftColor = r.accent;
       div.innerHTML =
         `<p class="gr-name" style="color:${r.accent}">${r.name}</p>` +
         `<p class="gr-look">${r.guide || r.subtitle || ""}</p>` +
-        `<p class="gr-list"><strong>${list.length}</strong> ${list.length === 1 ? "exhibit" : "exhibits"}: ${titles}</p>`;
+        `<p class="gr-list"><strong>${readLabel}</strong> — ${titles}</p>`;
       container.appendChild(div);
     }
   }

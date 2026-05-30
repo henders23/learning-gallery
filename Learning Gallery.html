@@ -266,6 +266,18 @@
   }
   #notesClear:hover { color: var(--ink); border-color: var(--ink); }
 
+  #panelRelated {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px;
+  }
+  .relChip {
+    background: #ede2c4; border: 1px solid #c8b890;
+    color: #2c2519; cursor: pointer;
+    padding: 7px 12px; border-radius: 2px;
+    font: 500 12.5px/1.2 "Helvetica Neue", Arial, sans-serif;
+    text-align: left;
+  }
+  .relChip:hover { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
   #panelClose {
     position: absolute; top: 18px; right: 18px;
     background: transparent; border: none;
@@ -328,6 +340,10 @@
     letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--gold); margin: 0 0 10px;
     padding-bottom: 6px; border-bottom: 1px solid rgba(0,0,0,0.08);
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  }
+  #notebookList h3 .nbCount {
+    letter-spacing: 0.06em; color: var(--muted); font-weight: 500;
   }
   #notebookList ul {
     list-style: none; margin: 0; padding: 0;
@@ -404,6 +420,23 @@
     color: rgba(255,242,200,0.55);
     letter-spacing: 0.04em;
   }
+  #mapProgress {
+    margin-top: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #mapProgressText {
+    font: 500 9.5px/1 "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #fff2c8; opacity: 0.85; white-space: nowrap;
+  }
+  #mapProgressBar {
+    flex: 1; height: 4px; min-width: 40px;
+    background: rgba(255,240,200,0.16); border-radius: 2px; overflow: hidden;
+  }
+  #mapProgressFill {
+    display: block; height: 100%; width: 0%;
+    background: var(--gold); transition: width 0.3s;
+  }
 
   /* ── bottom HUD ────────────────────────────────────────────── */
   #hud {
@@ -450,6 +483,10 @@
     <span id="mapRoomLabel">—</span>
   </div>
   <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="mapProgress">
+    <span id="mapProgressText">0 / 0 explored</span>
+    <span id="mapProgressBar"><i id="mapProgressFill"></i></span>
+  </div>
   <div id="mapLegend">M to toggle</div>
 </aside>
 
@@ -524,6 +561,11 @@
       <div id="panelAiWrap" style="display:none;">
         <p class="panelHeading">In the AI age</p>
         <p class="panelMeta" id="panelAi"></p>
+      </div>
+
+      <div id="panelRelatedWrap" style="display:none;">
+        <p class="panelHeading">Related exhibits</p>
+        <div id="panelRelated"></div>
       </div>
 
       <p class="panelHeading">My notes</p>
