@@ -268,6 +268,8 @@
   const panelAi = document.getElementById("panelAi");
   const panelRelatedWrap = document.getElementById("panelRelatedWrap");
   const panelRelated = document.getElementById("panelRelated");
+  const panelRefsWrap = document.getElementById("panelRefsWrap");
+  const panelRefs = document.getElementById("panelRefs");
   const panelClose = document.getElementById("panelClose");
   const panelArt = document.getElementById("panelArt");
   const panelNotes = document.getElementById("panelNotes");
@@ -356,6 +358,19 @@
     panelRelatedWrap.style.display = "";
   }
 
+  // Anchoring academic source(s) for this exhibit, where one exists.
+  function renderRefs(theory) {
+    panelRefs.innerHTML = "";
+    const refs = (window.CITATIONS && window.CITATIONS[theory.id]) || [];
+    if (!refs.length) { panelRefsWrap.style.display = "none"; return; }
+    for (const r of refs) {
+      const li = document.createElement("li");
+      li.textContent = r;
+      panelRefs.appendChild(li);
+    }
+    panelRefsWrap.style.display = "";
+  }
+
   // Progress indicator (persistent, on the map).
   const mapProgressText = document.getElementById("mapProgressText");
   const mapProgressFill = document.getElementById("mapProgressFill");
@@ -391,6 +406,7 @@
     setOptionalSection(panelPitfallsWrap, panelPitfalls, theory.pitfalls);
     setOptionalSection(panelAiWrap, panelAi, theory.aiImplications);
     renderRelated(theory);
+    renderRefs(theory);
 
     panelArt.innerHTML = "";
     const c = GalleryArt.makeArtworkCanvas(theory);

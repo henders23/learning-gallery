@@ -303,6 +303,15 @@
   }
   .relChip:hover { background: var(--gold); border-color: var(--gold); color: var(--ink); }
 
+  #panelRefs {
+    margin: 0 0 8px; padding: 0 0 0 1.4em; list-style: decimal;
+  }
+  #panelRefs li {
+    font: 400 12.5px/1.5 Georgia, serif;
+    color: #3a3225; margin: 0 0 7px; padding-left: 4px;
+  }
+  #panelRefs li::marker { color: var(--muted); font-size: 11px; }
+
   #panelClose {
     position: absolute; top: 18px; right: 18px;
     background: transparent; border: none;
@@ -598,6 +607,11 @@
         <div id="panelRelated"></div>
       </div>
 
+      <div id="panelRefsWrap" style="display:none;">
+        <p class="panelHeading">References</p>
+        <ol id="panelRefs"></ol>
+      </div>
+
       <p class="panelHeading">My notes</p>
       <textarea id="panelNotes" placeholder="Write your own notes on this theory — they save automatically and stay on your device."></textarea>
       <div class="notesBar">
@@ -636,6 +650,7 @@
 
 <!-- gallery modules -->
 <script src="gallery/data.js"></script>
+<script src="gallery/citations.js"></script>
 <script src="gallery/art.js"></script>
 <script src="gallery/world.js"></script>
 <script src="gallery/main.js"></script>
