@@ -59,10 +59,16 @@
       }
       return;
     }
+    // Welcome placard: only Enter/Space (begin) until the visitor has started.
+    if (welcomeOpen()) {
+      if (e.code === "Enter" || e.code === "Space") { e.preventDefault(); beginExploring(); }
+      return;
+    }
     keys[e.code] = true;
     if (e.code === "KeyN") toggleNotebook();
     if (e.code === "KeyM") toggleMap();
     if (e.code === "KeyG") toggleGuide();
+    if (e.code === "KeyL") lockLook();
     if (e.code === "Escape") {
       closePanel(); closeNotebook();
       if (guideOpen() && started) closeGuide();
@@ -71,19 +77,28 @@
   function toggleGuide() { if (guideOpen()) closeGuide(); else openGuide(); }
   window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-  // ── overlay (guidebook magazine) ─────────────────────────────────────────
-  // The magazine (#intro) is React-mounted by the HTML; main.js owns when it
-  // opens/closes and hands pointer-lock back and forth. Visibility is driven
-  // by the `.hidden` class (modal) and `body.modal-closed` (the reopen hint).
+  // ── welcome placard + guidebook magazine ─────────────────────────────────
+  // On load the visitor stands in the rotunda behind a short welcome placard.
+  // "Begin" grabs the pointer; the full magazine (#intro) opens only on G.
   const intro = document.getElementById("intro");
   const startBtn = document.getElementById("startBtn");
   const introClose = document.getElementById("introClose");
   const hint = document.getElementById("hint");
+  const welcome = document.getElementById("welcome");
+  const welcomeBegin = document.getElementById("welcomeBegin");
   let started = false;
+
+  function welcomeOpen() { return welcome && !welcome.classList.contains("hidden"); }
+  function beginExploring() {
+    if (welcome) welcome.classList.add("hidden");
+    started = true;
+    controls.lock();
+  }
+  if (welcomeBegin) welcomeBegin.addEventListener("click", beginExploring);
+
   function guideOpen() { return !intro.classList.contains("hidden"); }
   function setGuideOpen(open) {
     intro.classList.toggle("hidden", !open);
-    document.body.classList.toggle("modal-closed", !open);
     // Gate the magazine's ← → paging to only when the modal is actually open.
     if (window.Guidebook) window.Guidebook.setKeyboard(open);
     if (open) {
@@ -98,12 +113,19 @@
   startBtn.addEventListener("click", closeGuide);
   introClose.addEventListener("click", closeGuide);
 
-  controls.addEventListener("unlock", () => {
-    if (!panel.classList.contains("open") && !notebook.classList.contains("open") && !guideOpen()
-        && !(window.GalleryExplore && window.GalleryExplore.isOpen())) {
-      setTimeout(() => controls.lock(), 0);
-    }
-  });
+  // Re-grab the pointer for looking around. Esc (or opening a menu) releases
+  // it; clicking the gallery or pressing L grabs it again. No silent auto-
+  // relock — that fought the browser's post-Esc cooldown.
+  function lockLook() {
+    if (started && !overlayOpen() && !controls.isLocked) controls.lock();
+  }
+  let hintShown = null;
+  function updateHint() {
+    const show = started && !overlayOpen() && !controls.isLocked;
+    if (show !== hintShown) { hint.style.display = show ? "block" : "none"; hintShown = show; }
+  }
+  controls.addEventListener("lock", updateHint);
+  controls.addEventListener("unlock", updateHint);
 
   // ── click → raycast ─────────────────────────────────────────────────────
   const raycaster = new THREE.Raycaster();
@@ -126,12 +148,13 @@
   window.addEventListener("mouseup", () => { mouseDown = false; });
 
   document.addEventListener("click", (e) => {
-    if (panel.classList.contains("open") || notebook.classList.contains("open")) return;
-    if (window.GalleryExplore && window.GalleryExplore.isOpen()) return;
-    if (e.target.closest("#map, #hud, #hint, #intro, #panel, #notebook, #lgx-browse, #lgx-recall, #lgx-fab")) return;
+    if (overlayOpen()) return;
+    if (e.target.closest("#map, #hud, #hint, #intro, #welcome, #panel, #notebook, #lgx-browse, #lgx-recall, #lgx-fab")) return;
     if (controls.isLocked) {
-      tryInteract(false);
-    } else if (dragDistance <= 8) tryInteract(true);
+      tryInteract(false);              // read the picture you're facing
+    } else if (started) {
+      controls.lock();                 // click the gallery to look around again
+    }
   });
 
   // ── crosshair hover ─────────────────────────────────────────────────────
@@ -180,7 +203,7 @@
   let prev = performance.now();
 
   function overlayOpen() {
-    return panel.classList.contains("open") || notebook.classList.contains("open") || guideOpen()
+    return welcomeOpen() || panel.classList.contains("open") || notebook.classList.contains("open") || guideOpen()
       || (window.GalleryExplore && window.GalleryExplore.isOpen());
   }
 
@@ -392,6 +415,7 @@
     if (currentTheoryId) saveNote(currentTheoryId, panelNotes.value);
     panel.classList.remove("open");
     currentTheoryId = null;
+    resumeControls();
   }
 
   // ── notebook ────────────────────────────────────────────────────────────
@@ -474,6 +498,7 @@
   }
   function closeNotebook() {
     notebook.classList.remove("open");
+    resumeControls();
   }
 
   // ── minimap (radial 8-wing layout) ─────────────────────────────────────
@@ -662,6 +687,7 @@
       step(dt);
       updateHover();
       updateMap();
+      updateHint();
 
       if (scene.userData.titleGroup) {
         scene.userData.titleGroup.rotation.y += dt * 0.16;

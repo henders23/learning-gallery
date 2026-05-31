@@ -47,11 +47,23 @@
   }
 
   // ── framed picture (built in a parent's local plane: x across, y up, +z out)
-  function makeFramedArt(parent, theory, accent, x, y, z, rotY, raycastTargets) {
+  // opts.backboard: mount on a flat panel that juts out from the wall, so a
+  // curved (rotunda) wall behind can't cut across the title plaque.
+  function makeFramedArt(parent, theory, accent, x, y, z, rotY, raycastTargets, opts) {
+    opts = opts || {};
     const g = new THREE.Group();
     g.position.set(x, y, z);
     g.rotation.y = rotY;
     parent.add(g);
+
+    // optional backing board (a flat protruding section of wall)
+    if (opts.backboard) {
+      const depth = opts.backboardDepth || 0.55;
+      const bw = ART_W + FRAME_EXT + 0.7;
+      const bh = ART_H + 1.9;
+      const bbMat = new THREE.MeshStandardMaterial({ color: opts.backboardColor ?? 0xdccdb2, roughness: 0.9 });
+      addBox(g, bw, bh, depth, 0, -0.45, -(FRAME_DEPTH / 2) - depth / 2, bbMat);
+    }
 
     // outer frame (dark, high-contrast) with an accent inner lip
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x241c14, roughness: 0.55 });
@@ -273,7 +285,7 @@
         len,
         at: (s) => {
           const b = start + s / ROT_R;
-          const r = ROT_R - 0.12;
+          const r = ROT_R - 0.35; // sit proud of the curved wall (see backboard below)
           return { x: r * Math.cos(b), z: -r * Math.sin(b), ry: b - Math.PI / 2 };
         },
       });
@@ -281,7 +293,8 @@
     const slots = distribute(runs, theories.length);
     theories.forEach((t, i) => {
       const p = slots[i];
-      if (p) makeFramedArt(scene, t, room.accent, p.x, ART_Y, p.z, p.ry, raycastTargets);
+      if (p) makeFramedArt(scene, t, room.accent, p.x, ART_Y, p.z, p.ry, raycastTargets,
+        { backboard: true, backboardColor: room.wall, backboardDepth: 0.6 });
     });
 
     // bright central light

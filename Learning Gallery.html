@@ -113,7 +113,7 @@
     letter-spacing: 0.18em; color: rgba(255,242,200,0.45); text-transform: uppercase;
   }
 
-  /* ── reopen hint (when modal closed) ─────────────────────────── */
+  /* ── look-around hint (shown when the pointer is released) ────── */
   #hint {
     position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
     z-index: 40;
@@ -125,7 +125,59 @@
     border: 1px solid rgba(255, 240, 200, 0.18);
     display: none;
   }
-  body.modal-closed #hint { display: block; }
+
+  /* ── welcome placard (one-page intro shown on load) ──────────── */
+  #welcome {
+    position: fixed; inset: 0; z-index: 45;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(8,12,16,0.12), rgba(6,10,14,0.55));
+    padding: 24px;
+  }
+  #welcome.hidden { display: none; }
+  .welcomeCard {
+    max-width: 460px; width: 100%;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+    padding: 34px 36px 30px;
+    text-align: left;
+  }
+  .welcomeCard .wc-kicker {
+    font: 500 11px/1 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold);
+    margin: 0 0 14px;
+  }
+  .welcomeCard h1 {
+    font: 500 30px/1.12 'Newsreader', Georgia, serif;
+    margin: 0 0 16px; color: var(--ink);
+  }
+  .welcomeCard p {
+    font: 400 14.5px/1.6 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225; margin: 0 0 14px;
+  }
+  .welcomeCard .wc-controls {
+    font: 500 11px/1.6 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    margin: 0 0 22px;
+  }
+  .welcomeCard .wc-controls kbd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: #ede2c4; border: 1px solid #c8b890;
+    padding: 1px 6px; border-radius: 3px; font-size: 11px; color: var(--ink);
+    letter-spacing: 0; text-transform: none;
+  }
+  #welcomeBegin {
+    background: var(--ink); color: var(--paper);
+    border: none; padding: 13px 26px;
+    font: 600 11px/1 'Inter Tight', "Helvetica Neue", sans-serif;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.15s, color 0.15s;
+  }
+  #welcomeBegin:hover { background: var(--gold); color: var(--ink); }
+  .welcomeCard .wc-hint {
+    font: italic 12px/1.4 'Newsreader', Georgia, serif; color: var(--muted);
+    margin: 14px 0 0;
+  }
 
   /* ── info panel ─────────────────────────────────────────────── */
   #panel {
@@ -469,6 +521,7 @@
   <span><kbd>Shift</kbd>run</span>
   <span><kbd>Mouse</kbd>look</span>
   <span><kbd>Click</kbd>read picture</span>
+  <span><kbd>L</kbd>look around</span>
   <span><kbd>B</kbd>browse</span>
   <span><kbd>R</kbd>recall</span>
   <span><kbd>G</kbd>guidebook</span>
@@ -477,11 +530,25 @@
   <span><kbd>Esc</kbd>release cursor</span>
 </div>
 
-<!-- reopen hint (shown when the guidebook is closed) -->
-<div id="hint">G to open the guidebook</div>
+<!-- look-around hint (shown when the pointer is released) -->
+<div id="hint">Click or press L to look around</div>
 
-<!-- Guidebook (Atlas magazine) — replaces the old intro card -->
-<div id="intro">
+<!-- Welcome placard — the short one-page intro shown on load -->
+<div id="welcome">
+  <div class="welcomeCard">
+    <p class="wc-kicker">The Learning Gallery</p>
+    <h1>A walkable atlas of how people learn</h1>
+    <p>You're standing in the rotunda. Eight doorways lead to themed wings of framed ideas — walk up to any picture and click to read its summary, key points and discussion. Your notes save on this device.</p>
+    <p class="wc-controls">
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Mouse</kbd> look · <kbd>Click</kbd> read · <kbd>G</kbd> guidebook
+    </p>
+    <button id="welcomeBegin">Begin exploring →</button>
+    <p class="wc-hint">Press <strong>G</strong> any time for the illustrated guidebook. If the cursor comes loose, click the gallery or press <strong>L</strong> to look around again.</p>
+  </div>
+</div>
+
+<!-- Guidebook (Atlas magazine) — opens on G, not on load -->
+<div id="intro" class="hidden">
   <div id="introTop">
     <button id="introClose" title="Close guidebook (Esc)">✕</button>
   </div>
