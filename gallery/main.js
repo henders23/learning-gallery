@@ -12,7 +12,7 @@
   );
   camera.position.set(0, 1.65, 6);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setSize(window.innerWidth || 800, window.innerHeight || 600);
   renderer.outputEncoding = THREE.sRGBEncoding;
   document.getElementById("stage").appendChild(renderer.domElement);
@@ -71,39 +71,39 @@
   function toggleGuide() { if (guideOpen()) closeGuide(); else openGuide(); }
   window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-  // ── overlay (intro / guidebook) ──────────────────────────────────────────
+  // ── overlay (guidebook magazine) ─────────────────────────────────────────
+  // The magazine (#intro) is React-mounted by the HTML; main.js owns when it
+  // opens/closes and hands pointer-lock back and forth. Visibility is driven
+  // by the `.hidden` class (modal) and `body.modal-closed` (the reopen hint).
   const intro = document.getElementById("intro");
   const startBtn = document.getElementById("startBtn");
   const introClose = document.getElementById("introClose");
+  const hint = document.getElementById("hint");
   let started = false;
-  function guideOpen() { return intro.style.display !== "none"; }
-  function openGuide() {
-    buildGuide();
-    intro.style.display = "flex";
-    if (started) {
-      intro.classList.add("reopened");
-      startBtn.textContent = "Resume exploring";
+  function guideOpen() { return !intro.classList.contains("hidden"); }
+  function setGuideOpen(open) {
+    intro.classList.toggle("hidden", !open);
+    document.body.classList.toggle("modal-closed", !open);
+    // Gate the magazine's ← → paging to only when the modal is actually open.
+    if (window.Guidebook) window.Guidebook.setKeyboard(open);
+    if (open) {
+      if (controls.isLocked) controls.unlock();
+    } else {
+      started = true;
+      controls.lock();
     }
-    hint.style.display = "none";
-    if (controls.isLocked) controls.unlock();
   }
-  function closeGuide() {
-    intro.style.display = "none";
-    started = true;
-    controls.lock();
-  }
+  function openGuide() { setGuideOpen(true); }
+  function closeGuide() { setGuideOpen(false); }
   startBtn.addEventListener("click", closeGuide);
   introClose.addEventListener("click", closeGuide);
 
-  controls.addEventListener("lock", () => { intro.style.display = "none"; hint.style.display = "none"; });
   controls.addEventListener("unlock", () => {
     if (!panel.classList.contains("open") && !notebook.classList.contains("open") && !guideOpen()
         && !(window.GalleryExplore && window.GalleryExplore.isOpen())) {
       setTimeout(() => controls.lock(), 0);
     }
   });
-  const hint = document.getElementById("hint");
-  hint.addEventListener("click", () => { hint.style.display = "none"; controls.lock(); });
 
   // ── click → raycast ─────────────────────────────────────────────────────
   const raycaster = new THREE.Raycaster();
@@ -174,6 +174,9 @@
   // ── movement + collision ────────────────────────────────────────────────
   const SPEED = 4.8;
   const RUN_MULT = 1.7;
+  const ACCEL = 12;        // ease-in rate toward target velocity (per s)
+  const DECEL = 18;        // faster ease-out so stops feel crisp, not floaty
+  let velF = 0, velR = 0;  // smoothed forward / right velocity (m/s)
   let prev = performance.now();
 
   function overlayOpen() {
@@ -182,35 +185,47 @@
   }
 
   function step(dt) {
-    if (overlayOpen()) return;
-    const dir = new THREE.Vector3();
-    if (keys["KeyW"] || keys["ArrowUp"])    dir.z -= 1;
-    if (keys["KeyS"] || keys["ArrowDown"])  dir.z += 1;
-    if (keys["KeyA"] || keys["ArrowLeft"])  dir.x -= 1;
-    if (keys["KeyD"] || keys["ArrowRight"]) dir.x += 1;
-    if (dir.lengthSq() === 0) return;
-    dir.normalize();
+    if (overlayOpen()) { velF = velR = 0; return; }
+
+    // intended direction from keys
+    let inF = 0, inR = 0;
+    if (keys["KeyW"] || keys["ArrowUp"])    inF += 1;
+    if (keys["KeyS"] || keys["ArrowDown"])  inF -= 1;
+    if (keys["KeyD"] || keys["ArrowRight"]) inR += 1;
+    if (keys["KeyA"] || keys["ArrowLeft"])  inR -= 1;
+    if (inF !== 0 && inR !== 0) { inF *= Math.SQRT1_2; inR *= Math.SQRT1_2; }
 
     const speed = SPEED * (keys["ShiftLeft"] || keys["ShiftRight"] ? RUN_MULT : 1);
-    if (dir.z !== 0) controls.moveForward(-dir.z * speed * dt);
-    if (dir.x !== 0) controls.moveRight(dir.x * speed * dt);
+    // frame-rate-independent easing toward the target velocity (smooth start/stop),
+    // easing out faster than in so releasing the key stops you promptly.
+    const kF = 1 - Math.exp(-(inF === 0 ? DECEL : ACCEL) * dt);
+    const kR = 1 - Math.exp(-(inR === 0 ? DECEL : ACCEL) * dt);
+    velF += (inF * speed - velF) * kF;
+    velR += (inR * speed - velR) * kR;
+    if (inF === 0 && Math.abs(velF) < 0.01) velF = 0;
+    if (inR === 0 && Math.abs(velR) < 0.01) velR = 0;
+    if (velF === 0 && velR === 0) return;
 
     const obj = controls.getObject();
+    const prevX = obj.position.x, prevZ = obj.position.z;
+    if (velF) controls.moveForward(velF * dt);
+    if (velR) controls.moveRight(velR * dt);
+
+    // per-axis collision resolution → slide smoothly along walls instead of stopping
     const x = obj.position.x, z = obj.position.z;
     if (!world.isWalkable(world.boxes, x, z)) {
-      const prevX = obj.userData.lastX ?? x;
-      const prevZ = obj.userData.lastZ ?? z;
-      if (world.isWalkable(world.boxes, prevX, z)) {
-        obj.position.x = prevX;
-      } else if (world.isWalkable(world.boxes, x, prevZ)) {
-        obj.position.z = prevZ;
+      if (world.isWalkable(world.boxes, x, prevZ)) {
+        obj.position.z = prevZ;       // blocked on Z — keep sliding along X
+        velF *= 0.5; velR *= 0.5;
+      } else if (world.isWalkable(world.boxes, prevX, z)) {
+        obj.position.x = prevX;       // blocked on X — keep sliding along Z
+        velF *= 0.5; velR *= 0.5;
       } else {
-        obj.position.x = prevX;
+        obj.position.x = prevX;       // cornered — stop
         obj.position.z = prevZ;
+        velF = velR = 0;
       }
     }
-    obj.userData.lastX = obj.position.x;
-    obj.userData.lastZ = obj.position.z;
     obj.position.y = 1.65;
   }
 
@@ -367,7 +382,6 @@
 
     panel.classList.add("open");
     if (controls.isLocked) controls.unlock();
-    hint.style.display = "none";
 
     requestAnimationFrame(() => {
       const card = panel.querySelector(".panelCard");
@@ -457,7 +471,6 @@
     renderNotebook();
     notebook.classList.add("open");
     if (controls.isLocked) controls.unlock();
-    hint.style.display = "none";
   }
   function closeNotebook() {
     notebook.classList.remove("open");
@@ -638,31 +651,6 @@
   function toggleMap() {
     map.classList.toggle("collapsed");
   }
-
-  // ── guidebook content (built once from data) ─────────────────────────────
-  function buildGuide() {
-    const container = document.getElementById("guideRooms");
-    if (!container) return;
-    const grouped = {};
-    for (const t of THEORIES) (grouped[t.room] ||= []).push(t);
-    container.innerHTML = "";
-    for (const key of Object.keys(ROOMS)) {
-      const r = ROOMS[key];
-      const list = grouped[key] || [];
-      const titles = list.map((t) => t.title).join(" · ");
-      const groupSeen = list.reduce((n, t) => n + (visited.has(t.id) ? 1 : 0), 0);
-      const readLabel = groupSeen ? `${groupSeen} of ${list.length} read` : `${list.length} ${list.length === 1 ? "exhibit" : "exhibits"}`;
-      const div = document.createElement("div");
-      div.className = "guideRoom";
-      div.style.borderLeftColor = r.accent;
-      div.innerHTML =
-        `<p class="gr-name" style="color:${r.accent}">${r.name}</p>` +
-        `<p class="gr-look">${r.guide || r.subtitle || ""}</p>` +
-        `<p class="gr-list"><strong>${readLabel}</strong> — ${titles}</p>`;
-      container.appendChild(div);
-    }
-  }
-  buildGuide();
 
   // ── animation loop ──────────────────────────────────────────────────────
   function tick() {
