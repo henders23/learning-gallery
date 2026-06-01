@@ -15,6 +15,12 @@
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setSize(window.innerWidth || 800, window.innerHeight || 600);
   renderer.outputEncoding = THREE.sRGBEncoding;
+  // Filmic tone mapping pulls the blown-out cream back into a graded range and
+  // restores contrast/colour depth; soft shadows ground everything in the space.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.getElementById("stage").appendChild(renderer.domElement);
 
   function resizeRenderer() {
@@ -33,13 +39,50 @@
   }
   for (const t of [0, 50, 200, 1000]) setTimeout(resizeRenderer, t);
 
-  // Lights — bright, neutral gallery wash for clean contrast
-  scene.add(new THREE.AmbientLight(0xffffff, 0.62));
-  const hemi = new THREE.HemisphereLight(0xfff8ee, 0x6b6456, 0.5);
+  // Lights — a soft sky/ground fill plus one shadow-casting "sun". Ambient is
+  // kept low so tone mapping has real contrast to work with (the old 0.62
+  // ambient flooded every surface to the same cream value).
+  const hemi = new THREE.HemisphereLight(0xfff8ee, 0x4a4336, 0.55);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xfff4e2, 0.5);
-  sun.position.set(8, 30, 6);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+  const sun = new THREE.DirectionalLight(0xfff4e2, 0.85);
+  sun.position.set(14, 34, 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 120;
+  sun.shadow.camera.left = -60; sun.shadow.camera.right = 60;
+  sun.shadow.camera.top = 60;   sun.shadow.camera.bottom = -60;
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.04;
   scene.add(sun);
+
+  // A tiny generated environment map so polished surfaces (frames, floors)
+  // have something subtle to reflect — turns flat StandardMaterial into
+  // varnished wood / stone. No asset download.
+  (function addEnvironment() {
+    try {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      pmrem.compileEquirectangularShader();
+      const envScene = new THREE.Scene();
+      envScene.background = new THREE.Color(0x6a6c70);
+      // soft enclosing dome + an overhead glow plane, baked into the env map
+      const top = new THREE.Mesh(
+        new THREE.SphereGeometry(50, 16, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf4ecd8, side: THREE.BackSide })
+      );
+      envScene.add(top);
+      const glow = new THREE.Mesh(
+        new THREE.PlaneGeometry(40, 40),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
+      glow.position.y = 30; glow.rotation.x = Math.PI / 2;
+      envScene.add(glow);
+      const envRT = pmrem.fromScene(envScene, 0.04);
+      scene.environment = envRT.texture;
+      pmrem.dispose();
+    } catch (e) { /* env map is a nicety; never block the gallery on it */ }
+  })();
 
   // World
   const world = window.GalleryWorld.buildWorld(scene);

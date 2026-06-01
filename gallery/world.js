@@ -42,6 +42,8 @@
   function addBox(parent, w, h, d, x, y, z, mat) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     m.position.set(x, y, z);
+    m.castShadow = true;
+    m.receiveShadow = true;
     parent.add(m);
     return m;
   }
@@ -140,6 +142,7 @@
       })
     );
     floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
     group.add(floor);
 
     // ceiling
@@ -201,9 +204,12 @@
       if (p) makeFramedArt(group, t, room.accent, p.x, ART_Y, p.z, p.ry, raycastTargets);
     });
 
-    // wing light
+    // wing light — dialled back so the room grades rather than floods to a
+    // flat cream under tone mapping. Not a shadow caster: wings are simple
+    // boxes where shadows add little, and 8 cube-shadow lights would cost far
+    // more than they're worth (kept smooth per the perf budget).
     const lightColor = lighten(room.accent, 0.55).getHex();
-    const pt = new THREE.PointLight(lightColor, 0.9, room.sizeX * 1.4, 1.6);
+    const pt = new THREE.PointLight(lightColor, 0.62, room.sizeX * 1.5, 1.8);
     pt.position.set(0, h - 0.6, 0);
     group.add(pt);
   }
@@ -223,6 +229,7 @@
       })
     );
     floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
     scene.add(floor);
 
     // ceiling with an emissive skylight ring
@@ -297,9 +304,15 @@
         { backboard: true, backboardColor: room.wall, backboardDepth: 0.6 });
     });
 
-    // bright central light
-    const dome = new THREE.PointLight(0xfff3da, 1.4, 70, 1.2);
+    // central skylight — the rotunda's key light. Casts shadows so the
+    // jutting exhibits and door portals drop onto the floor, and is dialled
+    // back from the old flat 1.4 so tone mapping has a range to grade.
+    const dome = new THREE.PointLight(0xfff3da, 0.95, 70, 1.4);
     dome.position.set(0, h - 0.6, 0);
+    dome.castShadow = true;
+    dome.shadow.mapSize.set(1024, 1024);
+    dome.shadow.bias = -0.0006;
+    dome.shadow.normalBias = 0.04;
     scene.add(dome);
   }
 
