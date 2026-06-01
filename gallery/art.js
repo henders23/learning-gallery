@@ -64,25 +64,28 @@
     const compHue = (baseHue + (scheme < 0.5 ? 28 + rng() * 36 : 150 + rng() * 70)) % 360;
     const accentHue = ((baseHue + 180 + (rng() - 0.5) * 50) % 360 + 360) % 360;
 
-    // ground tone varies: light, mid-tint, or dark — biggest driver of variety
+    // Ground tone — a saturated tint, a rich mid, or a deep near-black. None
+    // are near-white: pale grounds read as a blank cream rectangle on the wall,
+    // which is what made the old artwork disappear. Every piece now carries
+    // real colour so it reads as a picture from across the room.
     let bg, onDark = false;
     const g = rng();
-    if (g < 0.46) {
-      bg = `hsl(${baseHue}, ${22 + rng() * 24}%, ${80 + rng() * 12}%)`;
-    } else if (g < 0.78) {
-      bg = `hsl(${baseHue}, ${30 + rng() * 26}%, ${52 + rng() * 16}%)`;
+    if (g < 0.26) {
+      bg = `hsl(${baseHue}, ${58 + rng() * 22}%, ${52 + rng() * 8}%)`;    // saturated tint
+    } else if (g < 0.66) {
+      bg = `hsl(${baseHue}, ${60 + rng() * 24}%, ${38 + rng() * 10}%)`;   // rich mid
     } else {
-      bg = `hsl(${baseHue}, ${28 + rng() * 22}%, ${15 + rng() * 12}%)`;
+      bg = `hsl(${baseHue}, ${48 + rng() * 24}%, ${12 + rng() * 9}%)`;    // deep ground
       onDark = true;
     }
-    const sat = 46 + rng() * 30;
+    const sat = 64 + rng() * 26;
     return {
       rng, onDark,
       bg,
-      dark:  `hsl(${baseHue}, ${40 + rng() * 22}%, ${15 + rng() * 10}%)`,
-      mid:   `hsl(${compHue}, ${sat}%, ${42 + rng() * 16}%)`,
-      light: `hsl(${baseHue}, ${28 + rng() * 22}%, ${74 + rng() * 12}%)`,
-      pop:   `hsl(${accentHue}, ${62 + rng() * 24}%, ${50 + rng() * 12}%)`,
+      dark:  `hsl(${baseHue}, ${52 + rng() * 24}%, ${14 + rng() * 9}%)`,
+      mid:   `hsl(${compHue}, ${sat}%, ${46 + rng() * 14}%)`,
+      light: `hsl(${baseHue}, ${42 + rng() * 26}%, ${78 + rng() * 12}%)`,
+      pop:   `hsl(${accentHue}, ${82 + rng() * 18}%, ${52 + rng() * 10}%)`,
     };
   }
 

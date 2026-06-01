@@ -21,6 +21,9 @@
   function texFromCanvas(canvas) {
     const t = new THREE.CanvasTexture(canvas);
     t.anisotropy = 8;
+    // Canvas art is authored in sRGB; tag it so the sRGB-output renderer +
+    // tone mapping don't mis-read it as linear and wash it out to pale.
+    t.encoding = THREE.sRGBEncoding;
     t.needsUpdate = true;
     return t;
   }
@@ -73,8 +76,9 @@
     const lipMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.5 });
     addBox(g, ART_W + FRAME_EXT * 0.5, ART_H + FRAME_EXT * 0.5, FRAME_DEPTH + 0.02, 0, 0, 0.005, lipMat);
 
-    // the picture
-    const artMat = new THREE.MeshBasicMaterial({ map: texFromCanvas(GalleryArt.makeArtworkCanvas(theory)) });
+    // the picture — the focal point; show it true to the canvas (unlit and
+    // exempt from tone mapping) so its colour reads at full strength.
+    const artMat = new THREE.MeshBasicMaterial({ map: texFromCanvas(GalleryArt.makeArtworkCanvas(theory)), toneMapped: false });
     const art = new THREE.Mesh(new THREE.PlaneGeometry(ART_W, ART_H), artMat);
     art.position.z = FRAME_DEPTH / 2 + 0.012;
     art.userData.theory = theory;
