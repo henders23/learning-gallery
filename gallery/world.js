@@ -80,7 +80,12 @@
     // exempt from tone mapping) so its colour reads at full strength.
     const artMat = new THREE.MeshBasicMaterial({ map: texFromCanvas(GalleryArt.makeArtworkCanvas(theory)), toneMapped: false });
     const art = new THREE.Mesh(new THREE.PlaneGeometry(ART_W, ART_H), artMat);
-    art.position.z = FRAME_DEPTH / 2 + 0.012;
+    // Sit in front of the accent lip's front face (lip is FRAME_DEPTH+0.02
+    // deep at z=0.005, so its face is at FRAME_DEPTH/2 + 0.015). The lip box
+    // is wider/taller than the art, so once the art is in front the lip reads
+    // as the thin accent border it was meant to be — instead of a solid panel
+    // covering the whole picture.
+    art.position.z = FRAME_DEPTH / 2 + 0.03;
     art.userData.theory = theory;
     art.userData.frameMat = frameMat;
     g.add(art);
