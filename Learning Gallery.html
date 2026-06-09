@@ -127,6 +127,8 @@
   }
 
   /* ── welcome placard (one-page intro shown on load) ──────────── */
+  /* Set in the Atlas magazine's editorial idiom: warm cream paper, deep
+     burgundy accent, Newsreader display + Inter Tight meta, rule-line runners. */
   #welcome {
     position: fixed; inset: 0; z-index: 45;
     display: flex; align-items: center; justify-content: center;
@@ -135,49 +137,64 @@
   }
   #welcome.hidden { display: none; }
   .welcomeCard {
-    max-width: 460px; width: 100%;
-    background: var(--paper); color: var(--ink);
-    border: 1px solid rgba(0,0,0,0.12);
+    max-width: 468px; width: 100%;
+    background: #f4ecd8; color: #1a1410;
+    border: 1px solid rgba(0,0,0,0.14);
     box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-    padding: 34px 36px 30px;
+    padding: 30px 36px 28px;
     text-align: left;
   }
+  .welcomeCard .wc-runner {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid #1a1410; padding-bottom: 9px; margin-bottom: 20px;
+    font: 500 10px/1 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .welcomeCard .wc-runner .wc-issue { color: #7a1e2b; }
   .welcomeCard .wc-kicker {
     font: 500 11px/1 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
-    letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold);
-    margin: 0 0 14px;
+    letter-spacing: 0.28em; text-transform: uppercase; color: #7a1e2b;
+    margin: 0 0 12px;
   }
   .welcomeCard h1 {
-    font: 500 30px/1.12 'Newsreader', Georgia, serif;
-    margin: 0 0 16px; color: var(--ink);
+    font: italic 500 38px/1.0 'Newsreader', Georgia, serif;
+    letter-spacing: -0.02em; margin: 0 0 6px; color: #1a1410;
+  }
+  .welcomeCard .wc-byline {
+    font: italic 400 15px/1.4 'Newsreader', Georgia, serif;
+    color: #6a5a48; margin: 0 0 18px;
   }
   .welcomeCard p {
-    font: 400 14.5px/1.6 "Helvetica Neue", Arial, sans-serif;
-    color: #3a3225; margin: 0 0 14px;
+    font: 400 14px/1.55 'Newsreader', Georgia, serif;
+    color: #2c2419; margin: 0 0 16px;
   }
   .welcomeCard .wc-controls {
-    font: 500 11px/1.6 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
-    letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-    margin: 0 0 22px;
+    font: 500 10.5px/1.7 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.04em; text-transform: uppercase; color: #6a5a48;
+    margin: 0 0 20px;
   }
   .welcomeCard .wc-controls kbd {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    background: #ede2c4; border: 1px solid #c8b890;
-    padding: 1px 6px; border-radius: 3px; font-size: 11px; color: var(--ink);
+    background: #e9dcbf; border: 1px solid #c8b890;
+    padding: 1px 6px; border-radius: 3px; font-size: 11px; color: #1a1410;
     letter-spacing: 0; text-transform: none;
   }
   #welcomeBegin {
-    background: var(--ink); color: var(--paper);
+    background: #7a1e2b; color: #f4ecd8;
     border: none; padding: 13px 26px;
     font: 600 11px/1 'Inter Tight', "Helvetica Neue", sans-serif;
     letter-spacing: 0.2em; text-transform: uppercase;
     cursor: pointer; transition: background 0.15s, color 0.15s;
   }
-  #welcomeBegin:hover { background: var(--gold); color: var(--ink); }
-  .welcomeCard .wc-hint {
-    font: italic 12px/1.4 'Newsreader', Georgia, serif; color: var(--muted);
-    margin: 14px 0 0;
+  #welcomeBegin:hover { background: #1a1410; color: #f4ecd8; }
+  .welcomeCard .wc-contact {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    border-top: 1px solid #c8b890; margin-top: 22px; padding-top: 12px;
+    font: 500 10px/1.4 'Inter Tight', "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #6a5a48;
   }
+  .welcomeCard .wc-contact a { color: #7a1e2b; text-decoration: none; }
+  .welcomeCard .wc-contact a:hover { text-decoration: underline; }
 
   /* ── info panel ─────────────────────────────────────────────── */
   #panel {
@@ -545,14 +562,22 @@
 <!-- Welcome placard — the short one-page intro shown on load -->
 <div id="welcome">
   <div class="welcomeCard">
-    <p class="wc-kicker">The Learning Gallery</p>
-    <h1>A walkable atlas of how people learn</h1>
-    <p>You're standing in the rotunda. Eight doorways lead to themed wings of framed ideas — walk up to any picture and click to read its summary, key points and discussion. Your notes save on this device.</p>
+    <div class="wc-runner">
+      <span>A Visitor's Guide</span>
+      <span class="wc-issue">Visitor's Edition</span>
+    </div>
+    <p class="wc-kicker">A walkable atlas of how people learn</p>
+    <h1>The Learning Gallery</h1>
+    <p class="wc-byline">by Paul Hendrie</p>
+    <p>You're standing in the rotunda. Eight doorways lead to themed wings of framed ideas — walk up to any picture and click to read its summary, key points and discussion. Press <strong>G</strong> any time for the illustrated guidebook.</p>
     <p class="wc-controls">
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Mouse</kbd> look · <kbd>Click</kbd> read · <kbd>G</kbd> guidebook
     </p>
     <button id="welcomeBegin">Begin exploring →</button>
-    <p class="wc-hint">Press <strong>G</strong> any time for the illustrated guidebook. If the cursor comes loose, click the gallery or press <strong>L</strong> to look around again.</p>
+    <div class="wc-contact">
+      <span>email: <a href="mailto:info@aiforhe.com">info@aiforhe.com</a></span>
+      <span><a href="https://www.aiforhe.com" target="_blank" rel="noopener">www.aiforhe.com</a></span>
+    </div>
   </div>
 </div>
 
