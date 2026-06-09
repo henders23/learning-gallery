@@ -102,6 +102,21 @@
   #introClose:hover { color: var(--gold); }
   #intro.reopened .introCard { position: relative; }
   #intro.reopened #introClose { display: block; }
+  .introCard .galleryTitle {
+    font: 600 22px/1.2 Georgia, serif; color: var(--ink);
+    margin: 0 0 4px;
+  }
+  .introCard .byline {
+    font: italic 14px/1.4 Georgia, serif; color: var(--muted);
+    margin: 0 0 6px;
+  }
+  .introCard .contact {
+    font: 400 13px/1.5 "Helvetica Neue", Arial, sans-serif;
+    color: #3a3225; margin: 0 0 20px;
+    padding-bottom: 18px; border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+  .introCard .contact a { color: var(--gold); text-decoration: none; }
+  .introCard .contact a:hover { text-decoration: underline; }
   .introCard .kicker {
     font: italic 14px/1.2 Georgia, serif; color: var(--muted);
     letter-spacing: 0.18em; text-transform: uppercase;
@@ -471,6 +486,8 @@
 <div id="intro">
   <div class="introCard">
     <button id="introClose" title="Back to the gallery">✕</button>
+    <h1 class="galleryTitle">‘The Learning Gallery’ by Paul Hendrie</h1>
+    <p class="contact">email: <a href="mailto:info@aiforhe.com">info@aiforhe.com</a> · <a href="https://www.aiforhe.com" target="_blank" rel="noopener">www.aiforhe.com</a></p>
     <p class="kicker">Guidebook · a walkable atlas of</p>
     <h1>Theories of Learning</h1>
     <p>Step into a central rotunda ringed by eight labelled doorways. Each opens into a colour-coded wing holding framed pictures — one per framework for how people learn. Walk up to any picture and click to read its summary, key points and discussion. Your notes save on your device.</p>
